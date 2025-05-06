@@ -1,0 +1,16 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow read and write access to the consultationRequests collection for now
+    // IMPORTANT: Change this for production to restrict access appropriately
+    match /consultationRequests/{request} {
+      allow read, write: if true; // Or use if request.auth != null; for authenticated users
+    }
+
+    // Keep other collections locked down if they exist, or add rules for them
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

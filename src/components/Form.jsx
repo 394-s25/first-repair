@@ -99,7 +99,7 @@ const Form = () => {
         margin: '20px auto' // Center form on the page
       }}
     >
-      <p style={{ color: "black", fontSize: "1.5em", fontWeight: "bold" }}>First Repair Consultation Request</p>
+      <p style={{ color: "black", fontSize: "1.5em", fontWeight: "bold" }}>FirstRepair Consultation Request</p>
 
       <FormTextField
         label="Name"

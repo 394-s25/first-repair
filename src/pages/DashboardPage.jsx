@@ -78,7 +78,7 @@ const DashboardPage = () => {
       <Typography variant="h4" gutterBottom component="h1">
         Admin Dashboard - Pending Consultation Requests
       </Typography>
-      {isLoading && <CircularProgress size={24} sx={{ mb: 2 }} />} {/* Show a small loader during refresh */}
+      {isLoading && <CircularProgress size={24} sx={{ mb: 2 }} />}
       {!isLoading && pendingRequests.length === 0 && !error && (
         <Typography>No pending requests at the moment.</Typography>
       )}
@@ -109,6 +109,20 @@ const DashboardPage = () => {
                           Email: {request.email} | Phone: {request.phone || 'N/A'}
                         </Typography>
                         <br />
+                        {/* Display Location Data */}
+                        {request.location && request.location.address && (
+                          <>
+                            Location: {request.location.address}
+                            <br />
+                          </>
+                        )}
+                        {/* You can add more location details if needed, e.g., city, state */}
+                        {/* {request.location && request.location.city && request.location.state && (
+                          <>
+                            City/State: {request.location.city}, {request.location.state}
+                            <br />
+                          </>
+                        )} */}
                         Stage: {request.stage}
                         <br />
                         Topics: {Array.isArray(request.topics) ? request.topics.join(', ') : request.topics}

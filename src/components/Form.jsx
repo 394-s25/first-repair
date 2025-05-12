@@ -1,6 +1,6 @@
-import Box from '@mui/material/Box'; // For overall form layout
-import React, { useState } from 'react'; // Import useState
-import { addConsultationRequest } from '../api/consultationService.js'; // Import your service
+import Box from '@mui/material/Box';
+import React, { useState } from 'react';
+import { addConsultationRequest } from '../api/consultationService.js';
 import FormTextField from './FormTextField.jsx';
 import MultiSelectDropdown from './MultiSelectDropdown.jsx';
 import SingleSelectDropdown from './SingleSelectDropdown.jsx';
@@ -12,8 +12,9 @@ const Form = () => {
     organization: '',
     email: '',
     phone: '',
-    stage: '', // For SingleSelectDropdown
-    topics: [], // For MultiSelectDropdown, initialize as array
+    stage: '',
+    otherStageDetail: '', // Added field for 'Other' stage elaboration
+    topics: [],
     additionalContext: '',
   };
 
@@ -49,16 +50,24 @@ const Form = () => {
 
   const handleChange = (event) => {
     const { name, value } = event.target;
+
     setFormData(prevState => ({
       ...prevState,
       [name]: value,
+      ...(name === 'stage' && value !== 'Other' ? { otherStageDetail: '' } : {})
     }));
   };
 
   const handleSubmit = async (event) => {
-    event.preventDefault(); // Prevent default form submission
+    event.preventDefault();
+
     if (!formData.name || !formData.email || !formData.stage || formData.topics.length === 0) {
       setSubmitMessage('Please fill in all required fields: Name, Email, Stage, and at least one Topic.');
+      return;
+    }
+
+    if (formData.stage === 'Other' && !formData.otherStageDetail.trim()) {
+      setSubmitMessage('Please elaborate on the stage of your reparations initiative.');
       return;
     }
 
@@ -70,7 +79,7 @@ const Form = () => {
 
       if (result.success) {
         setSubmitMessage(`Request submitted successfully! Request ID: ${result.id}`);
-        setFormData(initialFormData); // Reset form
+        setFormData(initialFormData);
       } else {
         setSubmitMessage(`Error: ${result.error?.message || 'Failed to submit request.'}`);
       }
@@ -83,23 +92,24 @@ const Form = () => {
   };
 
   return (
-    // Use Box for better layout control with MUI components
     <Box
-      component="form" // This Box is now the form
+      component="form"
       onSubmit={handleSubmit}
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center', // Center form items
-        gap: 2, // Spacing between items
+        alignItems: 'center',
+        gap: 2,
         padding: 3,
         border: '1px solid #ccc',
         borderRadius: '8px',
-        maxWidth: '500px', // Max width for the form
-        margin: '20px auto' // Center form on the page
+        maxWidth: '500px',
+        margin: '20px auto'
       }}
     >
-      <p style={{ color: "black", fontSize: "1.5em", fontWeight: "bold" }}>FirstRepair Consultation Request</p>
+      <p style={{ color: "black", fontSize: "1.5em", fontWeight: "bold" }}>
+        FirstRepair Consultation Request
+      </p>
 
       <FormTextField
         label="Name"
@@ -141,21 +151,32 @@ const Form = () => {
         options={reparationsStagesOptions}
         required
       />
+      {formData.stage === 'Other' && (
+        <FormTextField
+          label="Please elaborate on the stage of your initiative"
+          variant="outlined"
+          name="otherStageDetail"
+          value={formData.otherStageDetail}
+          onChange={handleChange}
+          required
+          multiline
+          rows={2}
+        />
+      )}
       <MultiSelectDropdown
-        label="Topics of Interest" // Changed label for clarity
-        name="topics" // Ensure this matches a field in formData
-        value={formData.topics} // Pass array value
-        onChange={handleChange} // This will set formData.topics
+        label="Topics of Interest"
+        name="topics"
+        value={formData.topics}
+        onChange={handleChange}
         options={consultationTopicsOptions}
         required
       />
       <FormTextField
         label="Additional Context (2-3 sentences)"
-        variant="outlined" // Changed to outlined for consistency
+        variant="outlined"
         name="additionalContext"
         value={formData.additionalContext}
         onChange={handleChange}
-        // For multiline, TextField needs specific props
         multiline
         rows={3}
       />
@@ -167,6 +188,6 @@ const Form = () => {
       )}
     </Box>
   );
-}
+};
 
 export default Form;

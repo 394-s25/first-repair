@@ -95,7 +95,7 @@ const Form = () => {
       const result = await addConsultationRequest(formData);
 
       if (result.success) {
-        setSubmitMessage(`Request submitted successfully! Request ID: ${result.id}`);
+        setSubmitMessage("Request submitted successfully! A member of the FirstRepair team will be in touch with you in the next 10 business days.");
         setFormData(initialFormData); // Reset form
         setFormKey(prevKey => prevKey + 1); // Change key to reset LocationAutocomplete
       } else {

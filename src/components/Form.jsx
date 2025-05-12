@@ -1,6 +1,6 @@
-import Box from '@mui/material/Box'; // For overall form layout
-import React, { useState } from 'react'; // Import useState
-import { addConsultationRequest } from '../api/consultationService.js'; // Import your service
+import Box from '@mui/material/Box';
+import React, { useState } from 'react';
+import { addConsultationRequest } from '../api/consultationService.js';
 import FormTextField from './FormTextField.jsx';
 import LocationAutocomplete from './LocationAutocomplete.jsx'; // Import the new component
 import MultiSelectDropdown from './MultiSelectDropdown.jsx';
@@ -14,6 +14,7 @@ const Form = () => {
     email: '',
     phone: '',
     stage: '',
+    otherStageDetail: '', // Added field for 'Other' stage elaboration
     topics: [],
     additionalContext: '',
     location: null, // Add new field for location data
@@ -52,9 +53,11 @@ const Form = () => {
 
   const handleChange = (event) => {
     const { name, value } = event.target;
+
     setFormData(prevState => ({
       ...prevState,
       [name]: value,
+      ...(name === 'stage' && value !== 'Other' ? { otherStageDetail: '' } : {})
     }));
   };
 
@@ -69,9 +72,16 @@ const Form = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+
     // Add validation for location if it's required
-    if (!formData.name || !formData.email || !formData.stage || formData.topics.length === 0 /* || !formData.location */) {
-      setSubmitMessage('Please fill in all required fields: Name, Email, Stage, Topics' /* and Location if required */);
+    if (!formData.name || !formData.email || !formData.stage || formData.topics.length === 0  || !formData.location ) {
+      setSubmitMessage('Please fill in all required fields: Name, Email, Location, Stage, Topics' /* and Location if required */);
+
+      return;
+    }
+
+    if (formData.stage === 'Other' && !formData.otherStageDetail.trim()) {
+      setSubmitMessage('Please elaborate on the stage of your reparations initiative.');
       return;
     }
 
@@ -115,7 +125,9 @@ const Form = () => {
         margin: '20px auto'
       }}
     >
-      <p style={{ color: "black", fontSize: "1.5em", fontWeight: "bold" }}>FirstRepair Consultation Request</p>
+      <p style={{ color: "black", fontSize: "1.5em", fontWeight: "bold" }}>
+        FirstRepair Consultation Request
+      </p>
 
       <FormTextField
         label="Name"
@@ -168,6 +180,18 @@ const Form = () => {
         options={reparationsStagesOptions}
         required
       />
+      {formData.stage === 'Other' && (
+        <FormTextField
+          label="Please elaborate on the stage of your initiative"
+          variant="outlined"
+          name="otherStageDetail"
+          value={formData.otherStageDetail}
+          onChange={handleChange}
+          required
+          multiline
+          rows={2}
+        />
+      )}
       <MultiSelectDropdown
         label="Topics of Interest"
         name="topics"
@@ -193,6 +217,6 @@ const Form = () => {
       )}
     </Box>
   );
-}
+};
 
 export default Form;

@@ -73,7 +73,7 @@ const Form = () => {
       const result = await addConsultationRequest(formData);
 
       if (result.success) {
-        setSubmitMessage(`Request submitted successfully! Request ID: ${result.id}`);
+        setSubmitMessage(`Request ID: ${result.id}`);
         setFormData(initialFormData); // Reset form
         setFormStep(3); // Move to confirmation step
       } else {
@@ -232,7 +232,7 @@ const Form = () => {
         return (
           <section>
             <h2>Thank You!</h2>
-            <p>Your consultation request has been submitted successfully.</p>
+            <p>Request submitted successfully! A member of the FirstRepair team will be in touch with you in the next 10 business days.</p>
             {submitMessage && (
               <p style={{ color: submitMessage.startsWith('Error:') ? 'red' : 'green', marginTop: '10px' }}>
                 {submitMessage}

@@ -23,6 +23,7 @@ const Form = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
   const [formStep, setFormStep] = useState(0);
+  const [stepError, setStepError] = useState('');
 
   const reparationsStagesOptions = [
     "Just getting started / Exploring",
@@ -86,11 +87,59 @@ const Form = () => {
     }
   };
 
+  const validateStep1 = () => {
+    if (!formData.name.trim()) {
+      setStepError('Name is required');
+      return false;
+    }
+    if (!formData.email.trim()) {
+      setStepError('Email is required');
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setStepError('Please enter a valid email address');
+      return false;
+    }
+    setStepError('');
+    return true;
+  };
+
+  const validateStep2 = () => {
+    if (!formData.stage) {
+      setStepError('Please select a stage of reparations initiative');
+      return false;
+    }
+    if (formData.topics.length === 0) {
+      setStepError('Please select at least one topic of interest');
+      return false;
+    }
+    setStepError('');
+    return true;
+  };
+
   const nextStep = () => {
-    setFormStep((prevStep) => prevStep + 1);
+    let isValid = true;
+    
+    switch (formStep) {
+      case 1:
+        isValid = validateStep1();
+        break;
+      case 2:
+        isValid = validateStep2();
+        break;
+      default:
+        isValid = true;
+    }
+
+    if (isValid) {
+      setFormStep((prevStep) => prevStep + 1);
+    }
   };
 
   const prevStep = () => {
+    setStepError('');
     setFormStep((prevStep) => prevStep - 1);
   };
 
@@ -99,9 +148,8 @@ const Form = () => {
       case 0:
         return (
           <section>
-            <h2>Welcome to FirstRepair Consultation Request</h2>
-            <p>Thank you for your interest in our consultation services. This form will help us understand your needs better.</p>
-            <p>Please take a moment to fill out the following information. We'll guide you through the process step by step.</p>
+            <h2>Welcome to FirstRepair Consulting Request Form</h2>
+            <p>This form will help us understand your needs better</p>
           </section>
         );
       case 1:
@@ -198,23 +246,28 @@ const Form = () => {
   };
 
   return (
-    // Use Box for better layout control with MUI components
     <Box
-      component="form" // This Box is now the form
+      component="form"
       onSubmit={handleSubmit}
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center', // Center form items
-        gap: 2, // Spacing between items
+        alignItems: 'center',
+        gap: 2,
         padding: 3,
         border: '1px solid #ccc',
         borderRadius: '8px',
-        maxWidth: '500px', // Max width for the form
-        margin: '20px auto' // Center form on the page
+        maxWidth: '500px',
+        margin: '20px auto'
       }}
     >
       {renderStepContent()}
+      
+      {stepError && (
+        <p style={{ color: 'red', marginTop: '10px', fontSize: '16px' }}>
+          {stepError}
+        </p>
+      )}
       
       <Box sx={{ display: 'flex', gap: 2, marginTop: 2 }}>
         {formStep > 0 && (

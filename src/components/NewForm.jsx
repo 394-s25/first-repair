@@ -270,7 +270,7 @@ const Form = () => {
       )}
       
       <Box sx={{ display: 'flex', gap: 2, marginTop: 2 }}>
-        {formStep > 0 && (
+        {formStep > 0 && formStep < 2 && (
           <Button
             variant="outlined"
             onClick={prevStep}

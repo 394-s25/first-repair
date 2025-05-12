@@ -2,6 +2,7 @@ import Box from '@mui/material/Box';
 import React, { useState } from 'react';
 import { addConsultationRequest } from '../api/consultationService.js';
 import FormTextField from './FormTextField.jsx';
+import LocationAutocomplete from './LocationAutocomplete.jsx'; // Import the new component
 import MultiSelectDropdown from './MultiSelectDropdown.jsx';
 import SingleSelectDropdown from './SingleSelectDropdown.jsx';
 import SubmitButton from './SubmitButton.jsx';
@@ -16,11 +17,13 @@ const Form = () => {
     otherStageDetail: '', // Added field for 'Other' stage elaboration
     topics: [],
     additionalContext: '',
+    location: null, // Add new field for location data
   };
 
   const [formData, setFormData] = useState(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
+  const [formKey, setFormKey] = useState(0); // Key for resetting LocationAutocomplete
 
   const reparationsStagesOptions = [
     "Just getting started / Exploring",
@@ -58,11 +61,22 @@ const Form = () => {
     }));
   };
 
+  const handleLocationSelect = (selectedLocation) => {
+    setFormData(prevState => ({
+      ...prevState,
+      location: selectedLocation, // This will be the structured location data object
+    }));
+    // You can log to see the detailed object:
+    // console.log("Selected Location:", selectedLocation);
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    if (!formData.name || !formData.email || !formData.stage || formData.topics.length === 0) {
-      setSubmitMessage('Please fill in all required fields: Name, Email, Stage, and at least one Topic.');
+    // Add validation for location if it's required
+    if (!formData.name || !formData.email || !formData.stage || formData.topics.length === 0  || !formData.location ) {
+      setSubmitMessage('Please fill in all required fields: Name, Email, Location, Stage, Topics' /* and Location if required */);
+
       return;
     }
 
@@ -75,11 +89,15 @@ const Form = () => {
     setSubmitMessage('');
 
     try {
+      // formData.location will contain the structured location data
+      // (address, placeId, coordinates, city, state, country, zipCode)
+      // This will be saved to Firestore as an object.
       const result = await addConsultationRequest(formData);
 
       if (result.success) {
         setSubmitMessage(`Request submitted successfully! Request ID: ${result.id}`);
-        setFormData(initialFormData);
+        setFormData(initialFormData); // Reset form
+        setFormKey(prevKey => prevKey + 1); // Change key to reset LocationAutocomplete
       } else {
         setSubmitMessage(`Error: ${result.error?.message || 'Failed to submit request.'}`);
       }
@@ -119,7 +137,8 @@ const Form = () => {
         onChange={handleChange}
         required
       />
-      <FormTextField
+      {/* ... other FormTextFields for organization, email, phone ... */}
+       <FormTextField
         label="Organization"
         variant="outlined"
         name="organization"
@@ -143,6 +162,16 @@ const Form = () => {
         value={formData.phone}
         onChange={handleChange}
       />
+      
+      {/* Location Autocomplete Field */}
+      {/* <label htmlFor="location-autocomplete" style={{ alignSelf: 'flex-start', marginLeft: '8px', marginBottom: '-8px', fontSize: '0.9rem', color: 'rgba(0, 0, 0, 0.6)' }}>
+        Location (City/Address):
+      </label> */}
+      <LocationAutocomplete
+        key={formKey} // Used to reset the component when the form resets
+        onPlaceSelected={handleLocationSelect}
+      />
+
       <SingleSelectDropdown
         label="Stage of Reparations Initiative"
         name="stage"

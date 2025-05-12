@@ -109,6 +109,14 @@ const Form = () => {
         onChange={handleChange}
         required
       />
+        <FormTextField
+        label="Location"
+        variant="outlined"
+        name="name"
+        value={formData.name}
+        onChange={handleChange}
+        required
+      />
       <FormTextField
         label="Organization"
         variant="outlined"

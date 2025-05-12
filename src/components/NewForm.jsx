@@ -213,10 +213,12 @@ const Form = () => {
               value={formData.phone}
               onChange={handleChange}
             />
-            <LocationAutocomplete
-              key={formKey}
-              onPlaceSelected={handleLocationSelect}
-            />
+            <div>
+                <LocationAutocomplete
+                key={formKey}
+                onPlaceSelected={handleLocationSelect}
+                />
+            </div>
           </section>
         );
       case 2:
@@ -295,6 +297,11 @@ const Form = () => {
         margin: '20px auto'
       }}
     >
+      {formStep < 3 && 
+      <p style={{ color: 'gray', marginTop: '10px', fontSize: '16px' }}>
+        Step {formStep + 1} of 3
+      </p>}
+
       {renderStepContent()}
       
       {stepError && (
@@ -304,7 +311,7 @@ const Form = () => {
       )}
       
       <Box sx={{ display: 'flex', gap: 2, marginTop: 2 }}>
-        {formStep > 0 && formStep < 2 && (
+        {formStep > 0 && formStep < 3 && (
           <Button
             variant="outlined"
             onClick={prevStep}

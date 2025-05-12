@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Link, Route, Routes } from 'react-router-dom';
 import './App.css';
 import Form from './components/Form.jsx';
+import NewForm from './components/NewForm.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 
 const App = () => {
@@ -25,7 +26,7 @@ const App = () => {
 const FormPage = () => {
   return (
     <header className="App-header">
-      <Form />
+      <NewForm />
     </header>
   );
 };

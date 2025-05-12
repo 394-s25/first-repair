@@ -137,20 +137,8 @@ const Form = () => {
         onChange={handleChange}
         required
       />
-<<<<<<< HEAD
-        <FormTextField
-        label="Location"
-        variant="outlined"
-        name="name"
-        value={formData.name}
-        onChange={handleChange}
-        required
-      />
-      <FormTextField
-=======
       {/* ... other FormTextFields for organization, email, phone ... */}
        <FormTextField
->>>>>>> master
         label="Organization"
         variant="outlined"
         name="organization"
@@ -205,19 +193,20 @@ const Form = () => {
         />
       )}
       <MultiSelectDropdown
-        label="Topics of Interest"
-        name="topics"
-        value={formData.topics}
-        onChange={handleChange}
+        label="Topics of Interest" // Changed label for clarity
+        name="topics" // Ensure this matches a field in formData
+        value={formData.topics} // Pass array value
+        onChange={handleChange} // This will set formData.topics
         options={consultationTopicsOptions}
         required
       />
       <FormTextField
         label="Additional Context (2-3 sentences)"
-        variant="outlined"
+        variant="outlined" // Changed to outlined for consistency
         name="additionalContext"
         value={formData.additionalContext}
         onChange={handleChange}
+        // For multiline, TextField needs specific props
         multiline
         rows={3}
       />

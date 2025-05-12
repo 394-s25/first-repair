@@ -6,6 +6,7 @@ import MultiSelectDropdown from './MultiSelectDropdown.jsx';
 import SingleSelectDropdown from './SingleSelectDropdown.jsx';
 import SubmitButton from './SubmitButton.jsx';
 import Button from '@mui/material/Button';
+import LocationAutocomplete from './LocationAutocomplete.jsx';
 
 const Form = () => {
   const initialFormData = {
@@ -13,10 +14,11 @@ const Form = () => {
     organization: '',
     email: '',
     phone: '',
-    location: '',
     stage: '', // For SingleSelectDropdown
+    otherStageDetail: '', // Added field for 'Other' stage elaboration
     topics: [], // For MultiSelectDropdown, initialize as array
     additionalContext: '',
+    location: null, // Changed to null for LocationAutocomplete
   };
 
   const [formData, setFormData] = useState(initialFormData);
@@ -24,6 +26,7 @@ const Form = () => {
   const [submitMessage, setSubmitMessage] = useState('');
   const [formStep, setFormStep] = useState(0);
   const [stepError, setStepError] = useState('');
+  const [formKey, setFormKey] = useState(0); // Key for resetting LocationAutocomplete
 
   const reparationsStagesOptions = [
     "Just getting started / Exploring",
@@ -56,13 +59,26 @@ const Form = () => {
     setFormData(prevState => ({
       ...prevState,
       [name]: value,
+      ...(name === 'stage' && value !== 'Other' ? { otherStageDetail: '' } : {})
+    }));
+  };
+
+  const handleLocationSelect = (selectedLocation) => {
+    setFormData(prevState => ({
+      ...prevState,
+      location: selectedLocation,
     }));
   };
 
   const handleSubmit = async (event) => {
-    event.preventDefault(); // Prevent default form submission
-    if (!formData.name || !formData.email || !formData.stage || formData.topics.length === 0) {
-      setSubmitMessage('Please fill in all required fields: Name, Email, Stage, and at least one Topic.');
+    event.preventDefault();
+    if (!formData.name || !formData.email || !formData.stage || formData.topics.length === 0 || !formData.location) {
+      setSubmitMessage('Please fill in all required fields: Name, Email, Location, Stage, and at least one Topic.');
+      return;
+    }
+
+    if (formData.stage === 'Other' && !formData.otherStageDetail.trim()) {
+      setSubmitMessage('Please elaborate on the stage of your reparations initiative.');
       return;
     }
 
@@ -73,9 +89,10 @@ const Form = () => {
       const result = await addConsultationRequest(formData);
 
       if (result.success) {
-        setSubmitMessage(`Request ID: ${result.id}`);
-        setFormData(initialFormData); // Reset form
-        setFormStep(3); // Move to confirmation step
+        setSubmitMessage("A member of the FirstRepair team will be in touch with you in the next 10 business days.");
+        setFormData(initialFormData);
+        setFormKey(prevKey => prevKey + 1); // Reset LocationAutocomplete
+        setFormStep(3);
       } else {
         setSubmitMessage(`Error: ${result.error?.message || 'Failed to submit request.'}`);
       }
@@ -96,6 +113,10 @@ const Form = () => {
       setStepError('Email is required');
       return false;
     }
+    if (!formData.location) {
+      setStepError('Location is required');
+      return false;
+    }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
@@ -109,6 +130,10 @@ const Form = () => {
   const validateStep2 = () => {
     if (!formData.stage) {
       setStepError('Please select a stage of reparations initiative');
+      return false;
+    }
+    if (formData.stage === 'Other' && !formData.otherStageDetail.trim()) {
+      setStepError('Please elaborate on the stage of your reparations initiative');
       return false;
     }
     if (formData.topics.length === 0) {
@@ -188,12 +213,9 @@ const Form = () => {
               value={formData.phone}
               onChange={handleChange}
             />
-            <FormTextField
-              label="Location"
-              variant="outlined"
-              name="location"
-              value={formData.location}
-              onChange={handleChange}
+            <LocationAutocomplete
+              key={formKey}
+              onPlaceSelected={handleLocationSelect}
             />
           </section>
         );
@@ -209,6 +231,18 @@ const Form = () => {
               options={reparationsStagesOptions}
               required
             />
+            {formData.stage === 'Other' && (
+              <FormTextField
+                label="Please elaborate on the stage of your initiative"
+                variant="outlined"
+                name="otherStageDetail"
+                value={formData.otherStageDetail}
+                onChange={handleChange}
+                required
+                multiline
+                rows={2}
+              />
+            )}
             <MultiSelectDropdown
               label="Topics of Interest"
               name="topics"
@@ -232,7 +266,7 @@ const Form = () => {
         return (
           <section>
             <h2>Thank You!</h2>
-            <p>Request submitted successfully! A member of the FirstRepair team will be in touch with you in the next 10 business days.</p>
+            <p>Request submitted successfully!</p>
             {submitMessage && (
               <p style={{ color: submitMessage.startsWith('Error:') ? 'red' : 'green', marginTop: '10px' }}>
                 {submitMessage}

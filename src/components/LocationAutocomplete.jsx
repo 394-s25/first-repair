@@ -122,7 +122,7 @@ const LocationAutocomplete = ({ onPlaceSelected }) => {
         apiKey={googleMapsApiKey}
         selectProps={{
           onChange: handleSelect,
-          placeholder: 'Location', // Changed from "Type location..."
+          placeholder: 'Location *', // Changed from "Type location..."
           isClearable: true,
           styles: customSelectStyles, // Apply custom styles here
           // To make it look more like an MUI TextField, you might need to adjust the 'inputId'

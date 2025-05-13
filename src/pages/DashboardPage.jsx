@@ -1,6 +1,8 @@
 // File: src/pages/DashboardPage.jsx
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'; // Import an icon
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton'; // Import IconButton
@@ -12,11 +14,13 @@ import Tooltip from '@mui/material/Tooltip'; // For better UX on the button
 import Typography from '@mui/material/Typography';
 import React, { useCallback, useEffect, useState } from 'react'; // Add useCallback
 import { getPendingConsultationRequests, updateConsultationRequestStatus } from '../api/consultationService'; // Import updateConsultationRequestStatus
+import { exportToSpreadsheet } from '../api/spreadsheetService';
 
 const DashboardPage = () => {
   const [pendingRequests, setPendingRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isExporting, setIsExporting] = useState(false);
 
   // Wrap fetchRequests in useCallback to ensure it has a stable identity
   // if used in dependencies of other hooks, though not strictly necessary here
@@ -56,6 +60,21 @@ const DashboardPage = () => {
     }
   };
 
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const result = await exportToSpreadsheet();
+      if (!result.success) {
+        alert('Failed to export data. Please try again.');
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+      alert('An error occurred while exporting the data.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   if (isLoading && pendingRequests.length === 0) { // Show loading only if there are no requests yet
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
@@ -75,9 +94,20 @@ const DashboardPage = () => {
 
   return (
     <Box sx={{ maxWidth: '800px', margin: 'auto', padding: 3 }}>
-      <Typography variant="h4" gutterBottom component="h1">
-        Admin Dashboard - Pending Consultation Requests
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h4" component="h1">
+          Admin Dashboard - Pending Consultation Requests
+        </Typography>
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<FileDownloadIcon />}
+          onClick={handleExport}
+          disabled={isExporting}
+        >
+          {isExporting ? 'Exporting...' : 'Export to CSV'}
+        </Button>
+      </Box>
       {isLoading && <CircularProgress size={24} sx={{ mb: 2 }} />}
       {!isLoading && pendingRequests.length === 0 && !error && (
         <Typography>No pending requests at the moment.</Typography>

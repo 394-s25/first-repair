@@ -52,6 +52,19 @@ const MultiSelectDropdown = ({
   //   );
   // };
 
+  const handleChange = (event) => { // Mahmood: Only allow users to select UP TO 3 topics of interest!
+    const {
+      target: { value:selected },
+    } = event;
+    const newValue = typeof selected === 'string' ? selected.split(',') : selected;
+    if (newValue.length <= 3) {
+      onChange(event);
+    } else {
+      alert('You can only select up to 3 topics.');
+    }
+  };
+
+
   return (
     <div>
       <FormControl sx={{ width: 300, ...sx }} required={required}> {/* Consistent margin */}
@@ -63,7 +76,7 @@ const MultiSelectDropdown = ({
           sx = {sx}
           name={name} // Add name prop
           value={value} // Use value prop
-          onChange={onChange} // Use onChange prop
+          onChange={handleChange} // Use onChange prop
           input={<OutlinedInput id={`select-${name}-multiple-chip`} label={label} />} // Pass label to OutlinedInput
           renderValue={(selected) => (
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>

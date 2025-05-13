@@ -1,13 +1,13 @@
 import Box from '@mui/material/Box';
-import React, { useState } from 'react';
-import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
+import React, { useState } from 'react';
 import { addConsultationRequest } from '../api/consultationService.js';
 import FormTextField from './FormTextField.jsx';
+import LocationAutocomplete from './LocationAutocomplete.jsx';
 import MultiSelectDropdown from './MultiSelectDropdown.jsx';
 import SingleSelectDropdown from './SingleSelectDropdown.jsx';
 import SubmitButton from './SubmitButton.jsx';
-import LocationAutocomplete from './LocationAutocomplete.jsx';
 
 const Form = () => {
   const initialFormData = {
@@ -200,7 +200,7 @@ const Form = () => {
             <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
               <Box sx={{ width: '100%' }}>
                 <MultiSelectDropdown 
-                  label="I need help with the following topics" 
+                  label="I need help with the following topics (Up to 3)" 
                   name="topics" 
                   value={formData.topics} 
                   onChange={handleChange} 

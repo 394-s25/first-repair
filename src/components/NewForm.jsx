@@ -1,11 +1,12 @@
-import Box from '@mui/material/Box'; // For overall form layout
-import React, { useState } from 'react'; // Import useState
-import { addConsultationRequest } from '../api/consultationService.js'; // Import your service
+import Box from '@mui/material/Box';
+import React, { useState } from 'react';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import { addConsultationRequest } from '../api/consultationService.js';
 import FormTextField from './FormTextField.jsx';
 import MultiSelectDropdown from './MultiSelectDropdown.jsx';
 import SingleSelectDropdown from './SingleSelectDropdown.jsx';
 import SubmitButton from './SubmitButton.jsx';
-import Button from '@mui/material/Button';
 import LocationAutocomplete from './LocationAutocomplete.jsx';
 
 const Form = () => {
@@ -14,11 +15,11 @@ const Form = () => {
     organization: '',
     email: '',
     phone: '',
-    stage: '', // For SingleSelectDropdown
-    otherStageDetail: '', // Added field for 'Other' stage elaboration
-    topics: [], // For MultiSelectDropdown, initialize as array
+    stage: '',
+    otherStageDetail: '',
+    topics: [],
     additionalContext: '',
-    location: null, // Changed to null for LocationAutocomplete
+    location: null,
   };
 
   const [formData, setFormData] = useState(initialFormData);
@@ -26,7 +27,7 @@ const Form = () => {
   const [submitMessage, setSubmitMessage] = useState('');
   const [formStep, setFormStep] = useState(0);
   const [stepError, setStepError] = useState('');
-  const [formKey, setFormKey] = useState(0); // Key for resetting LocationAutocomplete
+  const [formKey, setFormKey] = useState(0);
 
   const reparationsStagesOptions = [
     "Just getting started / Exploring",
@@ -91,7 +92,7 @@ const Form = () => {
       if (result.success) {
         setSubmitMessage("A member of the FirstRepair team will be in touch with you in the next 10 business days.");
         setFormData(initialFormData);
-        setFormKey(prevKey => prevKey + 1); // Reset LocationAutocomplete
+        setFormKey(prevKey => prevKey + 1);
         setFormStep(3);
       } else {
         setSubmitMessage(`Error: ${result.error?.message || 'Failed to submit request.'}`);
@@ -125,7 +126,6 @@ const Form = () => {
       setStepError('Please elaborate on the stage of your reparations initiative');
       return false;
     }
-
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       setStepError('Please enter a valid email address');
@@ -146,7 +146,6 @@ const Form = () => {
 
   const nextStep = () => {
     let isValid = true;
-    
     switch (formStep) {
       case 1:
         isValid = validateStep1();
@@ -157,124 +156,93 @@ const Form = () => {
       default:
         isValid = true;
     }
-
-    if (isValid) {
-      setFormStep((prevStep) => prevStep + 1);
-    }
+    if (isValid) setFormStep(prev => prev + 1);
   };
 
   const prevStep = () => {
     setStepError('');
-    setFormStep((prevStep) => prevStep - 1);
+    setFormStep(prev => prev - 1);
   };
 
   const renderStepContent = () => {
     switch (formStep) {
       case 0:
         return (
-          <section>
-            <h2>Welcome to FirstRepair Consulting Request Form</h2>
-            <p>This form will help us understand your needs better</p>
-          </section>
+          <Box>
+            <Typography variant="subtitle2" color="success.main" sx={{ mb: 1 }}>Step 1/4</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>Welcome to FirstRepair Consulting Request Form</Typography>
+            <Typography variant="body2" color="text.secondary">This form will help us understand your needs better</Typography>
+          </Box>
         );
       case 1:
         return (
-          <section>
-            <h2>About You</h2>
-            <FormTextField
-              label="Name"
-              variant="outlined"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-            />
-            <FormTextField
-              label="Organization"
-              variant="outlined"
-              name="organization"
-              value={formData.organization}
-              onChange={handleChange}
-            />
-            <FormTextField
-              label="Email"
-              variant="outlined"
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-            />
-            <FormTextField
-              label="Phone Number"
-              variant="outlined"
-              name="phone"
-              type="tel"
-              value={formData.phone}
-              onChange={handleChange}
-            />
-            <div>
-                <LocationAutocomplete
-                key={formKey}
-                onPlaceSelected={handleLocationSelect}
-                />
-            </div>
-            <SingleSelectDropdown
-              label="Stage of Reparations Initiative"
-              name="stage"
-              value={formData.stage}
-              onChange={handleChange}
-              options={reparationsStagesOptions}
-              required
-            />
+          <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+            <Typography variant="subtitle2" color="success.main" sx={{ mb: 1 }}>Step 2/4</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 900, fontSize: '2rem' }}>About You</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Please fill out the following information to help us understand your needs better.</Typography>
+
+            <FormTextField label="Name" variant="outlined" name="name" value={formData.name} onChange={handleChange} required sx={{ borderRadius: 2, backgroundColor: '#f8f9fa' }} />
+            <FormTextField label="Organization" variant="outlined" name="organization" value={formData.organization} onChange={handleChange} sx={{ borderRadius: 2, backgroundColor: '#f8f9fa' }} />
+            <FormTextField label="Email" variant="outlined" name="email" type="email" value={formData.email} onChange={handleChange} required sx={{ borderRadius: 2, backgroundColor: '#f8f9fa' }} />
+            <FormTextField label="Phone Number" variant="outlined" name="phone" type="tel" value={formData.phone} onChange={handleChange} sx={{ borderRadius: 2, backgroundColor: '#f8f9fa' }} />
+            <LocationAutocomplete key={formKey} onPlaceSelected={handleLocationSelect} />
+            <SingleSelectDropdown label="Stage of Reparations Initiative" name="stage" value={formData.stage} onChange={handleChange} options={reparationsStagesOptions} required />
             {formData.stage === 'Other' && (
-              <FormTextField
-                label="Please elaborate on the stage of your initiative"
-                variant="outlined"
-                name="otherStageDetail"
-                value={formData.otherStageDetail}
-                onChange={handleChange}
-                required
-                multiline
-                rows={2}
-              />
+              <FormTextField label="Please elaborate on the stage of your initiative" variant="outlined" name="otherStageDetail" value={formData.otherStageDetail} onChange={handleChange} required multiline rows={2} />
             )}
-          </section>
+          </Box>
         );
       case 2:
         return (
-          <section>
-            <h2>About your Question</h2>
-            <MultiSelectDropdown
-              label="I need help with the following topics"
-              name="topics"
-              value={formData.topics}
-              onChange={handleChange}
-              options={consultationTopicsOptions}
-              required
-            />
-            <FormTextField
-              label="Additional Context (2-3 sentences)"
-              variant="outlined"
-              name="additionalContext"
-              value={formData.additionalContext}
-              onChange={handleChange}
-              multiline = {true}
-              rows={5}
-            />
-          </section>
+          <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+            <Typography variant="subtitle2" color="success.main" sx={{ mb: 1 }}>Step 3/4</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>About your Question</Typography>
+            <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+              <Box sx={{ width: '100%' }}>
+                <MultiSelectDropdown 
+                  label="I need help with the following topics" 
+                  name="topics" 
+                  value={formData.topics} 
+                  onChange={handleChange} 
+                  options={consultationTopicsOptions} 
+                  required 
+                  sx={{ 
+                    width: '100%',
+                  }} 
+                />
+              </Box>
+              <Box sx={{ width: '100%' }}>
+              <FormTextField 
+                label="Additional Context (2-3 sentences)" 
+                variant="outlined" 
+                name="additionalContext" 
+                value={formData.additionalContext} 
+                onChange={handleChange} 
+                multiline 
+                rows={6}
+                sx={{ 
+                  width: '100%', 
+                  '& .MuiOutlinedInput-root': {
+                    minHeight: '150px',
+                    textAlign: 'left',
+                    width: '100%', 
+                  }
+                
+                }}
+              />
+              </Box>
+            </Box>
+          </Box>
         );
       case 3:
         return (
-          <section>
-            <h2>Thank You!</h2>
-            <p>Request submitted successfully!</p>
+          <Box>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>Thank You!</Typography>
+            <Typography variant="body1">Request submitted successfully!</Typography>
             {submitMessage && (
-              <p style={{ color: submitMessage.startsWith('Error:') ? 'red' : 'green', marginTop: '10px' }}>
-                {submitMessage}
-              </p>
+              <Typography color={submitMessage.startsWith('Error:') ? 'error' : 'success.main'} sx={{ mt: 2 }}>{submitMessage}</Typography>
             )}
-          </section>
+          </Box>
         );
       default:
         return null;
@@ -282,61 +250,44 @@ const Form = () => {
   };
 
   return (
-    <Box
-      component="form"
-      onSubmit={handleSubmit}
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 2,
-        padding: 3,
-        border: '1px solid #ccc',
-        borderRadius: '8px',
-        maxWidth: '500px',
-        margin: '20px auto'
-      }}
-    >
-      {formStep < 3 && 
-      <p style={{ color: 'gray', marginTop: '10px', fontSize: '16px' }}>
-        Step {formStep + 1} of 3
-      </p>}
-
-      {renderStepContent()}
-      
-      {stepError && (
-        <p style={{ color: 'red', marginTop: '10px', fontSize: '16px' }}>
-          {stepError}
-        </p>
+    <Box component="form" onSubmit={handleSubmit} sx={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      alignItems: 'center', 
+      gap: 2, 
+      padding: 4, 
+      borderRadius: '12px', 
+      boxShadow: 3, 
+      maxWidth: '600px', 
+      margin: '40px auto', 
+      backgroundColor: 'white',
+      width: '100%'
+    }}>
+      {formStep < 3 && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mb: 2, width: '100%' }}>
+          {[0, 1, 2, 3].map((_, idx) => (
+            <Box key={idx} sx={{ width: 40, height: 4, borderRadius: 2, backgroundColor: formStep >= idx ? 'success.main' : '#e0e0e0', transition: 'background-color 0.3s ease' }} />
+          ))}
+        </Box>
       )}
-      
-      <Box sx={{ display: 'flex', gap: 2, marginTop: 2 }}>
+
+      <Box sx={{ width: '100%', maxWidth: '500px' }}>
+        {renderStepContent()}
+      </Box>
+
+      {stepError && <Typography color="error" sx={{ mt: 2 }}>{stepError}</Typography>}
+
+      <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
         {formStep > 0 && formStep < 3 && (
-          <Button
-            variant="outlined"
-            onClick={prevStep}
-            disabled={isSubmitting}
-          >
-            Previous
-          </Button>
+          <Button variant="outlined" onClick={prevStep} disabled={isSubmitting} sx={{ borderRadius: 5 }}>Previous</Button>
         )}
-        
         {formStep < 2 && (
-          <Button
-            variant="contained"
-            onClick={nextStep}
-            disabled={isSubmitting}
-          >
-            Next
-          </Button>
+          <Button variant="contained" onClick={nextStep} disabled={isSubmitting} color="success" sx={{ borderRadius: 5, px: 4, fontWeight: 'bold', textTransform: 'none' }}>Next Step</Button>
         )}
-        
-        {formStep === 2 && (
-          <SubmitButton disabled={isSubmitting} />
-        )}
+        {formStep === 2 && <SubmitButton disabled={isSubmitting} />}
       </Box>
     </Box>
   );
-}
+};
 
 export default Form;

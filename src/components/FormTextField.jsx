@@ -9,15 +9,11 @@ const FormTextField = ({
   value, // Add value prop
   onChange, // Add onChange prop
   type = "text", // Add type prop, default to text
-  required = false // Add required prop
+  required = false, // Add required prop
+  sx = {},
 }) => {
   return (
-    <Box
-      // component="form" // Remove this, the parent Form.jsx will be the form
-      sx={{ '& > :not(style)': { m: 1, width: '25ch' } }}
-      noValidate
-      autoComplete="off"
-    >
+
       <TextField
         id={`outlined-${name}`} // Use name for a unique id
         label={label}
@@ -28,8 +24,9 @@ const FormTextField = ({
         type={type} // Pass type
         required={required} // Pass required
         fullWidth // Make text fields take full width of their container
+        sx={sx}
       />
-    </Box>
+
   );
 }
 

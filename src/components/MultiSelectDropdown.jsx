@@ -37,7 +37,8 @@ const MultiSelectDropdown = ({
   value, // This will be an array
   onChange,
   options, // Add options prop (renamed from categories for consistency)
-  required = false
+  required = false,
+  sx = {},
 }) => {
   const theme = useTheme();
   // const [personName, setPersonName] = React.useState([]); // State managed by parent
@@ -53,12 +54,13 @@ const MultiSelectDropdown = ({
 
   return (
     <div>
-      <FormControl sx={{ m: 1, width: 300 }} required={required}> {/* Consistent margin */}
+      <FormControl sx={{ width: 300, ...sx }} required={required}> {/* Consistent margin */}
         <InputLabel id={`${name}-multiple-chip-label`}>{label}</InputLabel>
         <Select
           labelId={`${name}-multiple-chip-label`}
           id={`${name}-multiple-chip`}
           multiple
+          sx = {sx}
           name={name} // Add name prop
           value={value} // Use value prop
           onChange={onChange} // Use onChange prop
@@ -81,6 +83,7 @@ const MultiSelectDropdown = ({
               {optionName}
             </MenuItem>
           ))}
+          
         </Select>
       </FormControl>
     </div>

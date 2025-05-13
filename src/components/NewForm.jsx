@@ -253,7 +253,7 @@ const Form = () => {
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
         <img 
-          src="../public/firstrepair-logo.png" 
+          src="/firstrepair-logo.png" 
           alt="FirstRepair Logo"
           style={{
             maxWidth: '400px',

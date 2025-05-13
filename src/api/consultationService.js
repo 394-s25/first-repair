@@ -52,3 +52,24 @@ export const updateConsultationRequestStatus = async (requestId, newStatus) => {
       return { success: false, error: e };
     }
 };
+
+export const getAllConsultationRequests = async () => {
+  try {
+    const requestsCollection = collection(db, "consultationRequests");
+    // Query all documents ordered by creation time (newest first)
+    const q = query(
+      requestsCollection,
+      orderBy("createdAt", "desc")
+    );
+
+    const querySnapshot = await getDocs(q);
+    const allRequests = [];
+    querySnapshot.forEach((doc) => {
+      allRequests.push({ id: doc.id, ...doc.data() });
+    });
+    return { success: true, data: allRequests };
+  } catch (e) {
+    console.error("Error fetching all consultation requests: ", e);
+    return { success: false, error: e, data: [] };
+  }
+};

@@ -250,41 +250,53 @@ const Form = () => {
   };
 
   return (
-    <Box component="form" onSubmit={handleSubmit} sx={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      alignItems: 'center', 
-      gap: 2, 
-      padding: 4, 
-      borderRadius: '12px', 
-      boxShadow: 3, 
-      maxWidth: '600px', 
-      margin: '40px auto', 
-      backgroundColor: 'white',
-      width: '100%'
-    }}>
-      {formStep < 3 && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mb: 2, width: '100%' }}>
-          {[0, 1, 2, 3].map((_, idx) => (
-            <Box key={idx} sx={{ width: 40, height: 4, borderRadius: 2, backgroundColor: formStep >= idx ? 'success.main' : '#e0e0e0', transition: 'background-color 0.3s ease' }} />
-          ))}
-        </Box>
-      )}
-
-      <Box sx={{ width: '100%', maxWidth: '500px' }}>
-        {renderStepContent()}
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+        <img 
+          src="../public/firstrepair-logo.png" 
+          alt="FirstRepair Logo"
+          style={{
+            maxWidth: '400px',
+            height: 'auto'
+          }}
+        />
       </Box>
-
-      {stepError && <Typography color="error" sx={{ mt: 2 }}>{stepError}</Typography>}
-
-      <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
-        {formStep > 0 && formStep < 3 && (
-          <Button variant="outlined" onClick={prevStep} disabled={isSubmitting} sx={{ borderRadius: 5 }}>Previous</Button>
+      <Box component="form" onSubmit={handleSubmit} sx={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center', 
+        gap: 2, 
+        padding: 4, 
+        borderRadius: '12px', 
+        boxShadow: 3, 
+        maxWidth: '600px', 
+        margin: '40px auto', 
+        backgroundColor: 'white',
+        width: '100%'
+      }}>
+        {formStep < 3 && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mb: 2, width: '100%' }}>
+            {[0, 1, 2, 3].map((_, idx) => (
+              <Box key={idx} sx={{ width: 40, height: 4, borderRadius: 2, backgroundColor: formStep >= idx ? 'success.main' : '#e0e0e0', transition: 'background-color 0.3s ease' }} />
+            ))}
+          </Box>
         )}
-        {formStep < 2 && (
-          <Button variant="contained" onClick={nextStep} disabled={isSubmitting} color="success" sx={{ borderRadius: 5, px: 4, fontWeight: 'bold', textTransform: 'none' }}>Next Step</Button>
-        )}
-        {formStep === 2 && <SubmitButton disabled={isSubmitting} />}
+
+        <Box sx={{ width: '100%', maxWidth: '500px' }}>
+          {renderStepContent()}
+        </Box>
+
+        {stepError && <Typography color="error" sx={{ mt: 2 }}>{stepError}</Typography>}
+
+        <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
+          {formStep > 0 && formStep < 3 && (
+            <Button variant="outlined" onClick={prevStep} disabled={isSubmitting} sx={{ borderRadius: 5 }}>Previous</Button>
+          )}
+          {formStep < 2 && (
+            <Button variant="contained" onClick={nextStep} disabled={isSubmitting} color="success" sx={{ borderRadius: 5, px: 4, fontWeight: 'bold', textTransform: 'none' }}>Next Step</Button>
+          )}
+          {formStep === 2 && <SubmitButton disabled={isSubmitting} />}
+        </Box>
       </Box>
     </Box>
   );

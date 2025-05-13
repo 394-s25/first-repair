@@ -123,7 +123,7 @@ const DashboardPage = () => {
                             <br />
                           </>
                         )} */}
-                        Stage: {request.stage}
+                        Stage: {request.stage === 'Other' ? `Other: ${request.otherStageDetail}` : request.stage}
                         <br />
                         Topics: {Array.isArray(request.topics) ? request.topics.join(', ') : request.topics}
                         <br />

@@ -117,6 +117,14 @@ const Form = () => {
       setStepError('Location is required');
       return false;
     }
+    if (!formData.stage) {
+      setStepError('Please select a stage of reparations initiative');
+      return false;
+    }
+    if (formData.stage === 'Other' && !formData.otherStageDetail.trim()) {
+      setStepError('Please elaborate on the stage of your reparations initiative');
+      return false;
+    }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
@@ -128,14 +136,6 @@ const Form = () => {
   };
 
   const validateStep2 = () => {
-    if (!formData.stage) {
-      setStepError('Please select a stage of reparations initiative');
-      return false;
-    }
-    if (formData.stage === 'Other' && !formData.otherStageDetail.trim()) {
-      setStepError('Please elaborate on the stage of your reparations initiative');
-      return false;
-    }
     if (formData.topics.length === 0) {
       setStepError('Please select at least one topic of interest');
       return false;
@@ -180,7 +180,7 @@ const Form = () => {
       case 1:
         return (
           <section>
-            <h2>Personal Information</h2>
+            <h2>About You</h2>
             <FormTextField
               label="Name"
               variant="outlined"
@@ -219,12 +219,6 @@ const Form = () => {
                 onPlaceSelected={handleLocationSelect}
                 />
             </div>
-          </section>
-        );
-      case 2:
-        return (
-          <section>
-            <h2>Reparations Information</h2>
             <SingleSelectDropdown
               label="Stage of Reparations Initiative"
               name="stage"
@@ -245,8 +239,14 @@ const Form = () => {
                 rows={2}
               />
             )}
+          </section>
+        );
+      case 2:
+        return (
+          <section>
+            <h2>About your Question</h2>
             <MultiSelectDropdown
-              label="Topics of Interest"
+              label="I need help with the following topics"
               name="topics"
               value={formData.topics}
               onChange={handleChange}
@@ -259,8 +259,8 @@ const Form = () => {
               name="additionalContext"
               value={formData.additionalContext}
               onChange={handleChange}
-              multiline
-              rows={3}
+              multiline = {true}
+              rows={5}
             />
           </section>
         );

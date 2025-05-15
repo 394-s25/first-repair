@@ -13,7 +13,7 @@ import Paper from '@mui/material/Paper';
 import Tooltip from '@mui/material/Tooltip'; // For better UX on the button
 import Typography from '@mui/material/Typography';
 import React, { useCallback, useEffect, useState } from 'react'; // Add useCallback
-import { getAllConsultationRequests, getPendingConsultationRequests, updateConsultationRequestStatus } from '../api/consultationService'; // Import updateConsultationRequestStatus
+import { getAllConsultationRequests, updateConsultationRequestStatus } from '../api/consultationService'; // Import updateConsultationRequestStatus
 import { exportToSpreadsheet } from '../api/spreadsheetService';
 
 
@@ -88,7 +88,7 @@ const DashboardPage = () => {
     <Box sx={{ maxWidth: '800px', margin: 'auto', padding: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" component="h1">
-          Admin Dashboard - Pending Consultation Requests
+          Admin Dashboard
         </Typography>
         <Button
           variant="contained"
@@ -160,7 +160,7 @@ const DashboardPage = () => {
 
           {/* Other (Resolved, etc.) Section */}
           <Typography variant="h5" sx={{ mt: 3, mb: 1 }}>
-            Other Requests
+            Resolved Requests
           </Typography>
           <Paper elevation={1}>
             <List>

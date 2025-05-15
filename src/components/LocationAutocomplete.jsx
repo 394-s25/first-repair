@@ -117,12 +117,12 @@ const LocationAutocomplete = ({ onPlaceSelected }) => {
     // which should center it and give it a similar width to other fields.
     // If you want it to be strictly left-aligned within a wider column,
     // the parent form's alignItems might need to be 'stretch' or this div's styling adjusted.
-    <div style={{ width: '100%', margin: '8px 0', maxWidth: '25ch' /* Match FormTextField width */ }}>
+    <div style={{ width: '100%', margin: '8px 0' }}>
       <GooglePlacesAutocomplete
         apiKey={googleMapsApiKey}
         selectProps={{
           onChange: handleSelect,
-          placeholder: 'Location', // Changed from "Type location..."
+          placeholder: 'Location *', // Changed from "Type location..."
           isClearable: true,
           styles: customSelectStyles, // Apply custom styles here
           // To make it look more like an MUI TextField, you might need to adjust the 'inputId'

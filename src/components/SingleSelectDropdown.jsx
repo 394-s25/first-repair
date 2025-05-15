@@ -22,7 +22,6 @@ const SingleSelectDropdown = ({
   // };
 
   return (
-    <Box sx={{ minWidth: 120, m: 1, width: '25ch' }}> {/* Added margin and width like TextField */}
       <FormControl fullWidth required={required}>
         <InputLabel id={`${name}-single-select-label`}>{label}</InputLabel>
         <Select
@@ -43,7 +42,6 @@ const SingleSelectDropdown = ({
           ))}
         </Select>
       </FormControl>
-    </Box>
   );
 };
 

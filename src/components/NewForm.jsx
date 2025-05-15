@@ -1,3 +1,4 @@
+import emailjs from '@emailjs/browser';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
@@ -8,8 +9,6 @@ import LocationAutocomplete from './LocationAutocomplete.jsx';
 import MultiSelectDropdown from './MultiSelectDropdown.jsx';
 import SingleSelectDropdown from './SingleSelectDropdown.jsx';
 import SubmitButton from './SubmitButton.jsx';
-import LocationAutocomplete from './LocationAutocomplete.jsx';
-import emailjs from '@emailjs/browser';
 
 
 const Form = () => {

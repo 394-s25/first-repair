@@ -1,4 +1,5 @@
 // File: src/pages/DashboardPage.jsx
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'; // Import an icon
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import Box from '@mui/material/Box';
@@ -176,7 +177,7 @@ const DashboardPage = () => {
                           aria-label="mark-pending"
                           onClick={() => handleResolveRequest(request.id, 'pending')}
                         >
-                          <CheckCircleOutlineIcon color="primary" />
+                          <ArrowUpwardIcon color="primary" />
                         </IconButton>
                       </Tooltip>
                     }>

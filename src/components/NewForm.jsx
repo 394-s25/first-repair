@@ -317,12 +317,12 @@ const Form = () => {
 
         <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
           {formStep > 0 && formStep < 3 && (
-            <Button variant="outlined" onClick={prevStep} disabled={isSubmitting} sx={{ borderRadius: 5 }}>Previous</Button>
+            <Button variant="outlined" onClick={prevStep} disabled={isSubmitting} sx={{ borderRadius: 5, px: 4, fontWeight: 'bold', textTransform: 'none', width: '150px' }}>Previous</Button>
           )}
           {formStep < 2 && (
-            <Button variant="contained" onClick={nextStep} disabled={isSubmitting} color="success" sx={{ borderRadius: 5, px: 4, fontWeight: 'bold', textTransform: 'none' }}>Next Step</Button>
+            <Button variant="contained" onClick={nextStep} disabled={isSubmitting} color="success" sx={{ borderRadius: 5, px: 4, fontWeight: 'bold', textTransform: 'none', width: '150px' }}>Next Step</Button>
           )}
-          {formStep === 2 && <SubmitButton disabled={isSubmitting} />}
+          {formStep === 2 && <SubmitButton disabled={isSubmitting} sx={{ width: '150px' }} />}
         </Box>
       </Box>
     </Box>

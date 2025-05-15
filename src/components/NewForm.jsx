@@ -8,6 +8,9 @@ import LocationAutocomplete from './LocationAutocomplete.jsx';
 import MultiSelectDropdown from './MultiSelectDropdown.jsx';
 import SingleSelectDropdown from './SingleSelectDropdown.jsx';
 import SubmitButton from './SubmitButton.jsx';
+import LocationAutocomplete from './LocationAutocomplete.jsx';
+import emailjs from '@emailjs/browser';
+
 
 const Form = () => {
   const initialFormData = {
@@ -90,6 +93,31 @@ const Form = () => {
       const result = await addConsultationRequest(formData);
 
       if (result.success) {
+        const submissionTime = new Date().toLocaleString();
+        const adminEmailParams = {
+          time: submissionTime,
+        };
+
+        const userEmailParams = {
+          email: formData.email,
+        }
+
+        // Send to internal team
+        await emailjs.send(
+          'service_ifll288',
+          'template_13tfoun',
+          adminEmailParams,
+          'u4mhQkwICrKbOkUfF'
+        );
+
+        // Send confirmation to requester
+        await emailjs.send(
+          'service_ifll288',
+          'template_53qnw1y',
+          userEmailParams,
+          'u4mhQkwICrKbOkUfF'
+        );
+
         setSubmitMessage("A member of the FirstRepair team will be in touch with you in the next 10 business days.");
         setFormData(initialFormData);
         setFormKey(prevKey => prevKey + 1);

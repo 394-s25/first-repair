@@ -1,32 +1,44 @@
-import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
-import * as React from 'react';
 
 const FormTextField = ({
   label,
+  placeholder,
   variant,
-  name, // Add name prop
-  value, // Add value prop
-  onChange, // Add onChange prop
-  type = "text", // Add type prop, default to text
-  required = false, // Add required prop
+  name,
+  value,
+  onChange,
+  type = "text",
+  required = false,
+  multiline = false,
+  rows = 1,
   sx = {},
 }) => {
   return (
-
-      <TextField
-        id={`outlined-${name}`} // Use name for a unique id
-        label={label}
-        variant={variant}
-        name={name} // Pass name to TextField
-        value={value} // Pass value
-        onChange={onChange} // Pass onChange
-        type={type} // Pass type
-        required={required} // Pass required
-        fullWidth // Make text fields take full width of their container
-        sx={sx}
-      />
-
+    <TextField
+      id={`outlined-${name}`}
+      placeholder={placeholder}
+      label={label}
+      variant={variant}
+      name={name}
+      value={value}
+      onChange={onChange}
+      type={type}
+      required={required}
+      multiline={multiline}
+      rows={rows}
+      fullWidth
+      InputProps={{
+        sx: {
+          '& .MuiInputBase-input::placeholder': {
+            whiteSpace: 'normal',
+            wordBreak: 'break-word',
+            overflow: 'visible',
+            lineHeight: 1.5,
+          }
+        }
+      }}
+      sx={sx}
+    />
   );
 }
 

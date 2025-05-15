@@ -1,4 +1,3 @@
-import React from 'react';
 import GooglePlacesAutocomplete, { geocodeByAddress, getLatLng } from 'react-google-places-autocomplete';
 
 const LocationAutocomplete = ({ value, onPlaceSelected }) => {
@@ -112,7 +111,7 @@ const LocationAutocomplete = ({ value, onPlaceSelected }) => {
         selectProps={{
           value: value ? { label: value.address, value: value } : null,
           onChange: handleSelect,
-          placeholder: 'Location *',
+          placeholder: 'Location of your reparations initiative *',
           isClearable: true,
           styles: customSelectStyles,
         }}

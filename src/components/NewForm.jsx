@@ -2,7 +2,7 @@ import emailjs from '@emailjs/browser';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { addConsultationRequest } from '../api/consultationService.js';
 import FormTextField from './FormTextField.jsx';
 import LocationAutocomplete from './LocationAutocomplete.jsx';
@@ -41,20 +41,20 @@ const Form = () => {
   ];
 
   const consultationTopicsOptions = [
+    'Allyship (Including Interfaith and Other Justice Movement Communities)',
+    'Arts and Culture',
     'Communications',
     'Community Engagement',
-    'Reparations Education',
-    'Legislative Strategy',
-    'Reparations Forms',
-    'Harm Report Consultation',
-    'Legal Strategy',
+    'Form of Repair',
     'Funding Repair',
-    'Leadership Coaching',
+    'Fundraising The Work',
     'General / Just Getting Started',
-    'How to be an Ally (Including Interfaith and Other Justice Movement Communities)',
+    'Harm Report Consultation',
+    'Leadership Coaching',
+    'Legal Strategy',
+    'Legislative Strategy',
     'Movement and Well-being',
-    'Fundraising (The Work)',
-    'Arts and Culture',
+    'Reparations Education',
   ];
 
   const handleChange = (event) => {
@@ -197,8 +197,8 @@ const Form = () => {
         return (
           <Box>
             <Typography variant="subtitle2" color="success.main" sx={{ mb: 1 }}>Step 1/4</Typography>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>Welcome to FirstRepair Consulting Request Form</Typography>
-            <Typography variant="body2" color="text.secondary">This form will help us understand your needs better</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>Requesting Consultation from FirstRepair</Typography>
+            <Typography variant="body2" color="text.secondary">FirstRepair supports local reparations initiatives by connecting local leaders to issue area experts, providing toolkits and resources, and one-on-one strategic advising. The questions in this form will help us prepare and provide the right consultation for your needs.</Typography>
           </Box>
         );
       case 1:
@@ -227,7 +227,7 @@ const Form = () => {
             <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
               <Box sx={{ width: '100%' }}>
                 <MultiSelectDropdown 
-                  label="I need help with the following topics (Up to 3)" 
+                  label="I am seeking consultation in these topics (please select up to 3)" 
                   name="topics" 
                   value={formData.topics} 
                   onChange={handleChange} 
@@ -240,7 +240,8 @@ const Form = () => {
               </Box>
               <Box sx={{ width: '100%' }}>
               <FormTextField 
-                label="Additional Context (2-3 sentences)" 
+                label="Additional Context (3-4 sentences)" 
+                placeholder="Please tell us more about your reparations initiative and/or the topic of the consultation."
                 variant="outlined" 
                 name="additionalContext" 
                 value={formData.additionalContext} 
@@ -269,6 +270,21 @@ const Form = () => {
             {submitMessage && (
               <Typography color={submitMessage.startsWith('Error:') ? 'error' : 'success.main'} sx={{ mt: 2 }}>{submitMessage}</Typography>
             )}
+            <Typography color = "success.main" sx={{ mt: 1 }}>
+              In the meantime, please explore additional resources on{' '}
+              <a href="http://www.firstrepair.org/" target="_blank" rel="noopener noreferrer">
+                our website
+              </a>{' '}
+              or recordings of{' '}
+              <a href="https://www.youtube.com/playlist?list=PLbQL1agwNw86B-WM-VnbmhdRin9-BGHSK" target="_blank" rel="noopener noreferrer">
+                Reparations Strategy Sessions
+              </a>
+              . You can also{' '}
+              <a href="https://firstrepair.org/regional-support/" target="_blank" rel="noopener noreferrer">
+                reach out to your Regional Leader or join a Regional Strategy Session
+              </a>
+              .
+            </Typography>
           </Box>
         );
       default:
@@ -280,7 +296,7 @@ const Form = () => {
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
         <img 
-          src="/firstrepair-logo.png" 
+          src="/firstrepair.jpg" 
           alt="FirstRepair Logo"
           style={{
             maxWidth: '400px',

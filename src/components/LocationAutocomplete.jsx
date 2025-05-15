@@ -1,11 +1,8 @@
 import React from 'react';
 import GooglePlacesAutocomplete, { geocodeByAddress, getLatLng } from 'react-google-places-autocomplete';
-// Optional: If you want to use MUI theme for consistent styling
-// import { useTheme } from '@mui/material/styles';
 
-const LocationAutocomplete = ({ onPlaceSelected }) => {
+const LocationAutocomplete = ({ value, onPlaceSelected }) => {
   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-  // const theme = useTheme(); // Optional: For MUI theme access
 
   if (!googleMapsApiKey) {
     console.error("Google Maps API Key is missing. Please set VITE_GOOGLE_MAPS_API_KEY in your .env file.");
@@ -21,7 +18,7 @@ const LocationAutocomplete = ({ onPlaceSelected }) => {
       try {
         const results = await geocodeByAddress(place.label);
         const latLng = await getLatLng(results[0]);
-        
+
         const addressComponents = results[0].address_components;
         const getAddressComponent = (type) => {
           const component = addressComponents.find(c => c.types.includes(type));
@@ -51,83 +48,73 @@ const LocationAutocomplete = ({ onPlaceSelected }) => {
   const customSelectStyles = {
     control: (provided, state) => ({
       ...provided,
-      minHeight: '56px', // Approximate MUI TextField height for variant="outlined"
-      padding: '0 8px', // Adjust padding to align text better
-      borderColor: state.isFocused ? 'rgba(0, 0, 0, 0.87)' : 'rgba(0, 0, 0, 0.23)', // Mimic MUI border
-      boxShadow: state.isFocused ? '0 0 0 1px rgba(0, 0, 0, 0.87)' : null, // Mimic MUI focus ring (simplified)
+      minHeight: '56px',
+      padding: '0 8px',
+      borderColor: state.isFocused ? 'rgba(0, 0, 0, 0.87)' : 'rgba(0, 0, 0, 0.23)',
+      boxShadow: state.isFocused ? '0 0 0 1px rgba(0, 0, 0, 0.87)' : null,
       '&:hover': {
         borderColor: 'rgba(0, 0, 0, 0.87)',
       },
-      borderRadius: '4px', // MUI default border radius
-      fontSize: '1rem', // MUI default font size
-      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif', // MUI default font family
-      // Ensure the input field itself is left-aligned if it wasn't by default
+      borderRadius: '4px',
+      fontSize: '1rem',
+      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
       textAlign: 'left',
     }),
     valueContainer: (provided) => ({
       ...provided,
-      padding: '2px 0px', // Adjust to vertically center text if needed
+      padding: '2px 0px',
     }),
     input: (provided) => ({
       ...provided,
-      paddingLeft: '0px', // Ensure text starts from the left
+      paddingLeft: '0px',
       marginLeft: '0px',
       fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
       fontSize: '1rem',
     }),
     placeholder: (provided) => ({
       ...provided,
-      color: 'rgba(0, 0, 0, 0.54)', // MUI placeholder color
+      color: 'rgba(0, 0, 0, 0.54)',
       fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
       fontSize: '1rem',
-      marginLeft: '2px', // Align with input text
+      marginLeft: '2px',
     }),
     singleValue: (provided) => ({
       ...provided,
-      color: 'rgba(0, 0, 0, 0.87)', // MUI input text color
+      color: 'rgba(0, 0, 0, 0.87)',
       fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
       fontSize: '1rem',
       marginLeft: '2px',
     }),
     menu: (provided) => ({
       ...provided,
-      backgroundColor: 'white', // Make dropdown menu background opaque white
-      // backgroundColor: theme.palette.background.paper, // Optional: Use MUI theme
-      zIndex: 2, // Ensure menu is above other elements if needed
+      backgroundColor: 'white',
+      zIndex: 2,
       border: '1px solid rgba(0, 0, 0, 0.23)',
       borderRadius: '4px',
-      boxShadow: '0px 5px 5px -3px rgba(0,0,0,0.2), 0px 8px 10px 1px rgba(0,0,0,0.14), 0px 3px 14px 2px rgba(0,0,0,0.12)', // MUI Paper elevation 8
+      boxShadow: '0px 5px 5px -3px rgba(0,0,0,0.2), 0px 8px 10px 1px rgba(0,0,0,0.14), 0px 3px 14px 2px rgba(0,0,0,0.12)',
     }),
     option: (provided, state) => ({
       ...provided,
       fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
       fontSize: '1rem',
-      backgroundColor: state.isSelected ? 'rgba(25, 118, 210, 0.08)' : state.isFocused ? 'rgba(0, 0, 0, 0.04)' : 'white', // Mimic MUI selection/hover
+      backgroundColor: state.isSelected ? 'rgba(25, 118, 210, 0.08)' : state.isFocused ? 'rgba(0, 0, 0, 0.04)' : 'white',
       color: state.isSelected ? '#1976d2' : 'rgba(0, 0, 0, 0.87)',
-      '&:active': { // Mimic MUI active state
+      '&:active': {
         backgroundColor: 'rgba(25, 118, 210, 0.12)',
       },
     }),
-    // Add other parts you want to style: dropdownIndicator, clearIndicator, etc.
   };
 
   return (
-    // The div wrapper helps control the overall width and alignment within the form
-    // Your Form.jsx has alignItems: 'center' and this div has maxWidth: '25ch',
-    // which should center it and give it a similar width to other fields.
-    // If you want it to be strictly left-aligned within a wider column,
-    // the parent form's alignItems might need to be 'stretch' or this div's styling adjusted.
     <div style={{ width: '100%', margin: '8px 0' }}>
       <GooglePlacesAutocomplete
         apiKey={googleMapsApiKey}
         selectProps={{
+          value: value ? { label: value.address, value: value } : null,
           onChange: handleSelect,
-          placeholder: 'Location *', // Changed from "Type location..."
+          placeholder: 'Location *',
           isClearable: true,
-          styles: customSelectStyles, // Apply custom styles here
-          // To make it look more like an MUI TextField, you might need to adjust the 'inputId'
-          // or other props if you were trying to link it with an external MUI Label.
-          // For now, the placeholder acts as the label.
+          styles: customSelectStyles,
         }}
         autocompletionRequest={{
           componentRestrictions: { country: 'us' }

@@ -212,7 +212,7 @@ const Form = () => {
             <FormTextField label="Organization" variant="outlined" name="organization" value={formData.organization} onChange={handleChange} sx={{ borderRadius: 2, backgroundColor: '#f8f9fa' }} />
             <FormTextField label="Email" variant="outlined" name="email" type="email" value={formData.email} onChange={handleChange} required sx={{ borderRadius: 2, backgroundColor: '#f8f9fa' }} />
             <FormTextField label="Phone Number" variant="outlined" name="phone" type="tel" value={formData.phone} onChange={handleChange} sx={{ borderRadius: 2, backgroundColor: '#f8f9fa' }} />
-            <LocationAutocomplete key={formKey} onPlaceSelected={handleLocationSelect} />
+            <LocationAutocomplete key={formKey} value={formData.location} onPlaceSelected={handleLocationSelect} />
             <SingleSelectDropdown label="Stage of Reparations Initiative" name="stage" value={formData.stage} onChange={handleChange} options={reparationsStagesOptions} required />
             {formData.stage === 'Other' && (
               <FormTextField label="Please elaborate on the stage of your initiative" variant="outlined" name="otherStageDetail" value={formData.otherStageDetail} onChange={handleChange} required multiline rows={2} />

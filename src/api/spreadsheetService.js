@@ -1,7 +1,8 @@
-import { db } from '../firebase/firebase_ini';
 import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../firebase/firebase_ini';
 
 export const exportToSpreadsheet = async () => {
+  let url = null;
   try {
 
     const requestsCollection = collection(db, "consultationRequests");
@@ -22,7 +23,9 @@ export const exportToSpreadsheet = async () => {
         additionalContext: data.additionalContext || '',
         location: data.location?.address || '',
         status: data.status || '',
-        createdAt: data.createdAt?.toDate().toLocaleString() || '',
+        createdAt: data.createdAt && typeof data.createdAt.toDate === 'function' 
+                   ? data.createdAt.toDate().toLocaleString() 
+                   : '',
       });
     });
 
@@ -63,7 +66,7 @@ export const exportToSpreadsheet = async () => {
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
+    url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
     link.setAttribute('download', `consultation_requests_${new Date().toISOString().split('T')[0]}.csv`);
     link.style.visibility = 'hidden';
@@ -75,5 +78,9 @@ export const exportToSpreadsheet = async () => {
   } catch (error) {
     console.error('Error exporting to spreadsheet:', error);
     return { success: false, error };
+  } finally {
+    if (url) {
+      URL.revokeObjectURL(url); // Revoke URL in the finally block
+    }
   }
 }; 

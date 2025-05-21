@@ -148,7 +148,7 @@ const DashboardPage = () => {
                             <br />
                             Context: {request.additionalContext}
                             <br />
-                            Submitted: {request.createdAt?.toDate().toLocaleString()}
+                            Submitted: {request.createdAt instanceof Date ? request.createdAt.toLocaleString() : 'N/A'}
                           </>
                         }
                       />
@@ -198,7 +198,7 @@ const DashboardPage = () => {
                           <br />
                           Context: {request.additionalContext}
                           <br />
-                          Submitted: {request.createdAt?.toDate().toLocaleString()}
+                          Submitted: {request.createdAt instanceof Date ? request.createdAt.toLocaleString() : 'N/A'}
                         </>
                       }
                     />

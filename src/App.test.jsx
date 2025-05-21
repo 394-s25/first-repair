@@ -2,18 +2,13 @@ import {describe, expect, test} from 'vitest';
 import {fireEvent, render, screen} from '@testing-library/react';
 import App from './App';
 
-describe('counter tests', () => {
+describe('button tests', () => {
     
-  test("Counter should be 0 at the start", () => {
+  test("next step after button is clicked", async () => {
     render(<App />);
-    expect(screen.getByText('count is: 0')).toBeDefined();
-  });
-
-  test("Counter should increment by one when clicked", async () => {
-    render(<App />);
-    const counter = screen.getByRole('button');
-    fireEvent.click(counter);
-    expect(await screen.getByText('count is: 1')).toBeDefined();
+    const steps = screen.getByRole('button');
+    fireEvent.click(steps);
+    expect(await screen.getByText('About You')).toBeDefined();
   });
 
 });

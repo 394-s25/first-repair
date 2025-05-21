@@ -1,1 +1,0 @@
-// functions/controllers/events.js

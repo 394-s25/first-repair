@@ -56,7 +56,6 @@ export const updateConsultationRequestStatus = async (requestId, newStatus) => {
 export const getAllConsultationRequests = async () => {
   try {
     const requestsCollection = collection(db, "consultationRequests");
-    // Query all documents ordered by creation time (newest first)
     const q = query(
       requestsCollection,
       orderBy("createdAt", "desc")
@@ -65,7 +64,15 @@ export const getAllConsultationRequests = async () => {
     const querySnapshot = await getDocs(q);
     const allRequests = [];
     querySnapshot.forEach((doc) => {
-      allRequests.push({ id: doc.id, ...doc.data() });
+      const data = doc.data(); // Get the document data
+      allRequests.push({ 
+        id: doc.id, 
+        ...data, // Spread the original data
+        // Convert createdAt to a JavaScript Date object if it exists and has toDate
+        createdAt: data.createdAt && typeof data.createdAt.toDate === 'function' 
+                   ? data.createdAt.toDate() 
+                   : null 
+      });
     });
     return { success: true, data: allRequests };
   } catch (e) {

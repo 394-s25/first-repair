@@ -2,13 +2,16 @@ import emailjs from '@emailjs/browser';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import ReCAPTCHA from 'react-google-recaptcha';
 import { addConsultationRequest } from '../api/consultationService.js';
 import FormTextField from './FormTextField.jsx';
 import LocationAutocomplete from './LocationAutocomplete.jsx';
 import MultiSelectDropdown from './MultiSelectDropdown.jsx';
 import SingleSelectDropdown from './SingleSelectDropdown.jsx';
 import SubmitButton from './SubmitButton.jsx';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 
 
 const Form = () => {
@@ -30,6 +33,13 @@ const Form = () => {
   const [formStep, setFormStep] = useState(0);
   const [stepError, setStepError] = useState('');
   const [formKey, setFormKey] = useState(0);
+  const recaptchaRef = useRef();
+  const RECAPTCHA_SITE_KEY = "6LdP30MrAAAAADxhcmQJu39waqlOwFxVTLPOaFj2";
+  const [recaptchaToken, setRecaptchaToken] = useState(null);
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+
+
 
   const reparationsStagesOptions = [
     "Just getting started / Exploring",
@@ -75,6 +85,13 @@ const Form = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+
+    if (!recaptchaToken) {
+      setAlertMessage('Please complete the CAPTCHA before submitting.');
+      setAlertOpen(true);
+      return;
+    }
+
     if (!formData.name || !formData.email || !formData.stage || formData.topics.length === 0 || !formData.location) {
       setSubmitMessage('Please fill in all required fields: Name, Email, Location, Stage, and at least one Topic.');
       return;
@@ -259,6 +276,13 @@ const Form = () => {
                 }}
               />
               </Box>
+              <ReCAPTCHA
+                ref={recaptchaRef}
+                sitekey={RECAPTCHA_SITE_KEY}
+                // size="invisible"
+                // badge="bottomleft"
+                onChange={(token) => setRecaptchaToken(token)}
+              />
             </Box>
           </Box>
         );
@@ -304,7 +328,7 @@ const Form = () => {
           }}
         />
       </Box>
-      <Box component="form" onSubmit={handleSubmit} sx={{ 
+      <Box component="form" onSubmit={handleSubmit} sx={{
         display: 'flex', 
         flexDirection: 'column', 
         alignItems: 'center', 
@@ -341,6 +365,16 @@ const Form = () => {
           {formStep === 2 && <SubmitButton disabled={isSubmitting} sx={{ width: '150px' }} />}
         </Box>
       </Box>
+      <Snackbar 
+        open={alertOpen} 
+        autoHideDuration={4000} 
+        onClose={() => setAlertOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setAlertOpen(false)} severity="warning" sx={{ width: '100%' }}>
+          {alertMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

@@ -116,7 +116,8 @@ const LocationAutocomplete = ({ value, onPlaceSelected }) => {
           styles: customSelectStyles,
         }}
         autocompletionRequest={{
-          componentRestrictions: { country: 'us' }
+          componentRestrictions: { country: 'us' },
+          language: 'en',
         }}
         debounce={300}
       />

@@ -14,8 +14,10 @@ import Paper from '@mui/material/Paper';
 import Tooltip from '@mui/material/Tooltip'; // For better UX on the button
 import Typography from '@mui/material/Typography';
 import React, { useCallback, useEffect, useState } from 'react'; // Add useCallback
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import { getAllConsultationRequests, updateConsultationRequestStatus } from '../api/consultationService'; // Import updateConsultationRequestStatus
 import { exportToSpreadsheet } from '../api/spreadsheetService';
+import { useAuth } from '../contexts/AuthContext'; // Import useAuth
 
 
 const DashboardPage = () => {
@@ -23,7 +25,16 @@ const DashboardPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isExporting, setIsExporting] = useState(false);
-
+  const { logout } = useAuth(); // Get logout function from AuthContext
+  const navigate = useNavigate(); // Get navigate function from react-router-dom
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login', { replace: true });
+    } catch (err) {
+      console.error('Logout failed:', err);
+    }
+  };
   // Wrap fetchRequests in useCallback to ensure it has a stable identity
   // if used in dependencies of other hooks, though not strictly necessary here
   // as it's only called in useEffect with an empty dependency array.
@@ -100,6 +111,13 @@ const DashboardPage = () => {
         >
           {isExporting ? 'Exporting...' : 'Export to CSV'}
         </Button>
+        <Button
+            variant="outlined"
+            color="secondary"
+            onClick={handleLogout}
+          >
+            Logout
+          </Button>
       </Box>
       {isLoading && <CircularProgress size={24} sx={{ mb: 2 }} />}
       {!isLoading && pendingRequests.length === 0 && !error && (

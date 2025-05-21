@@ -14,13 +14,7 @@ import {
     getDocs as mockGetDocs,
     orderBy as mockOrderBy,
     query as mockQuery,
-    serverTimestamp as mockServerTimestamp // For controlling serverTimestamp()
-    ,
-
-
-
-
-
+    serverTimestamp as mockServerTimestamp,
     Timestamp as MockTimestamp, // For controlling Timestamp.now() and Timestamp.fromDate()
     updateDoc as mockUpdateDoc
 } from 'firebase/firestore';

@@ -41,7 +41,8 @@ const Form = () => {
   ];
 
   const consultationTopicsOptions = [
-    'Allyship (Including Interfaith and Other Justice Movement Communities)',
+    'Allyship (Including Other Justice Movements)',
+    'Interfaith Collaboration',
     'Arts and Culture',
     'Communications',
     'Community Engagement',
@@ -167,6 +168,10 @@ const Form = () => {
       setStepError('Please select at least one topic of interest');
       return false;
     }
+    if (!formData.additionalContext.trim()) {
+      setStepError('Please provide additional context about your consultation needs');
+      return false;
+    }
     setStepError('');
     return true;
   };
@@ -223,11 +228,12 @@ const Form = () => {
         return (
           <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
             <Typography variant="subtitle2" color="success.main" sx={{ mb: 1 }}>Step 3/4</Typography>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>About your Question</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>About Your Question</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Please select up to 3 topics and provide additional context about your consultation needs.</Typography>
             <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
               <Box sx={{ width: '100%' }}>
                 <MultiSelectDropdown 
-                  label="I am seeking consultation in these topics (please select up to 3)" 
+                  label="I am seeking consultation in these topics (select up to 3)" 
                   name="topics" 
                   value={formData.topics} 
                   onChange={handleChange} 
@@ -248,6 +254,7 @@ const Form = () => {
                 onChange={handleChange} 
                 multiline 
                 rows={6}
+                required
                 sx={{ 
                   width: '100%', 
                   '& .MuiOutlinedInput-root': {
@@ -255,7 +262,6 @@ const Form = () => {
                     textAlign: 'left',
                     width: '100%', 
                   }
-                
                 }}
               />
               </Box>

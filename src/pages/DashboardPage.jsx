@@ -1,32 +1,44 @@
 // File: src/pages/DashboardPage.jsx
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'; // Import an icon
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 import Divider from '@mui/material/Divider';
-import IconButton from '@mui/material/IconButton'; // Import IconButton
+import IconButton from '@mui/material/IconButton';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 import Paper from '@mui/material/Paper';
-import Tooltip from '@mui/material/Tooltip'; // For better UX on the button
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
-import React, { useCallback, useEffect, useState } from 'react'; // Add useCallback
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
-import { getAllConsultationRequests, updateConsultationRequestStatus } from '../api/consultationService'; // Import updateConsultationRequestStatus
+import { differenceInBusinessDays } from 'date-fns'; // Import from date-fns-business
+import React, { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { getAllConsultationRequests, updateConsultationRequestStatus } from '../api/consultationService';
 import { exportToSpreadsheet } from '../api/spreadsheetService';
-import { useAuth } from '../contexts/AuthContext'; // Import useAuth
+import { useAuth } from '../contexts/AuthContext';
+import { getRegionByState, MIDWEST_STATES, NORTHEAST_STATES, SOUTH_STATES, WEST_STATES } from '../utils/regionMapping';
 
+const REGIONS_CONFIG = {
+  Northeast: { name: 'Northeast', states: NORTHEAST_STATES },
+  Midwest: { name: 'Midwest', states: MIDWEST_STATES },
+  South: { name: 'South', states: SOUTH_STATES },
+  West: { name: 'West', states: WEST_STATES },
+  Unknown: { name: 'Unknown Region', states: [] }
+};
+
+const REGION_ORDER = ['Northeast', 'Midwest', 'South', 'West', 'Unknown'];
 
 const DashboardPage = () => {
-  const [pendingRequests, setPendingRequests] = useState([]);
+  const [allRequests, setAllRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isExporting, setIsExporting] = useState(false);
-  const { logout } = useAuth(); // Get logout function from AuthContext
-  const navigate = useNavigate(); // Get navigate function from react-router-dom
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -35,27 +47,28 @@ const DashboardPage = () => {
       console.error('Logout failed:', err);
     }
   };
-  // Wrap fetchRequests in useCallback to ensure it has a stable identity
-  // if used in dependencies of other hooks, though not strictly necessary here
-  // as it's only called in useEffect with an empty dependency array.
+
   const fetchRequests = useCallback(async () => {
     setIsLoading(true);
     setError('');
     const result = await getAllConsultationRequests();
     if (result.success) {
-      setPendingRequests(result.data);
+      const processedRequests = result.data.map(req => ({
+        ...req,
+        region: req.location?.region || getRegionByState(req.location?.state) || 'Unknown'
+      }));
+      setAllRequests(processedRequests);
     } else {
-      setError(result.error?.message || 'Failed to fetch pending requests.');
+      setError(result.error?.message || 'Failed to fetch requests.');
     }
     setIsLoading(false);
-  }, []); // No dependencies, so it's stable
+  }, []);
 
   useEffect(() => {
     fetchRequests();
-  }, [fetchRequests]); // fetchRequests is now a dependency
+  }, [fetchRequests]);
 
-  const handleResolveRequest = async (requestId, newStatus = "resolved") => {
-
+  const handleResolveRequest = async (requestId, newStatus) => {
     const result = await updateConsultationRequestStatus(requestId, newStatus);
     if (result.success) {
       fetchRequests();
@@ -71,19 +84,69 @@ const DashboardPage = () => {
       if (!result.success) {
         alert('Failed to export data. Please try again.');
       }
-    } catch (error) {
-      console.error('Export error:', error);
+    } catch (exportError) {
+      console.error('Export error:', exportError);
       alert('An error occurred while exporting the data.');
     } finally {
       setIsExporting(false);
     }
   };
 
-  if (isLoading && pendingRequests.length === 0) { // Show loading only if there are no requests yet
+  const categorizeRequestsByRegionAndStatus = () => {
+    const categorized = {};
+    REGION_ORDER.forEach(regionName => {
+      categorized[regionName] = {
+        New: [],
+        NearlyDue: [],
+        Overdue: [],
+        Resolved: [],
+      };
+    });
+
+    const now = new Date();
+    allRequests.forEach(request => {
+      const region = request.region || 'Unknown';
+      if (!categorized[region]) {
+        categorized[region] = { New: [], NearlyDue: [], Overdue: [], Resolved: [] };
+      }
+
+      if (request.status !== 'pending') {
+        categorized[region].Resolved.push(request);
+      } else {
+        let createdAtDate;
+        if (request.createdAt && typeof request.createdAt.toDate === 'function') { // Firestore Timestamp
+          createdAtDate = request.createdAt.toDate();
+        } else if (request.createdAt instanceof Date) { // Already a JS Date
+          createdAtDate = request.createdAt;
+        }
+
+        if (createdAtDate) {
+          // Ensure 'now' is always later than 'createdAtDate' for differenceInBusinessDays
+          const startDate = createdAtDate < now ? createdAtDate : now;
+          const endDate = createdAtDate < now ? now : createdAtDate;
+          const businessDaysPassed = differenceInBusinessDays(endDate, startDate);
+
+          if (businessDaysPassed <= 5) {
+            categorized[region].New.push(request);
+          } else if (businessDaysPassed <= 10) {
+            categorized[region].NearlyDue.push(request);
+          } else {
+            categorized[region].Overdue.push(request);
+          }
+        } else {
+          // Fallback for unexpected createdAt format
+          categorized[region].New.push(request);
+        }
+      }
+    });
+    return categorized;
+  };
+
+  if (isLoading && allRequests.length === 0) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
         <CircularProgress />
-        <Typography sx={{ ml: 2 }}>Loading pending requests...</Typography>
+        <Typography sx={{ ml: 2 }}>Loading requests...</Typography>
       </Box>
     );
   }
@@ -96,8 +159,10 @@ const DashboardPage = () => {
     );
   }
 
+  const categorizedRequests = categorizeRequestsByRegionAndStatus();
+
   return (
-    <Box sx={{ maxWidth: '800px', margin: 'auto', padding: 3 }}>
+    <Box sx={{ maxWidth: '900px', margin: 'auto', padding: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" component="h1">
           Admin Dashboard
@@ -112,124 +177,103 @@ const DashboardPage = () => {
           {isExporting ? 'Exporting...' : 'Export to CSV'}
         </Button>
         <Button
-            variant="outlined"
-            color="secondary"
-            onClick={handleLogout}
-          >
-            Logout
-          </Button>
+          variant="outlined"
+          color="secondary"
+          onClick={handleLogout}
+        >
+          Logout
+        </Button>
       </Box>
+
       {isLoading && <CircularProgress size={24} sx={{ mb: 2 }} />}
-      {!isLoading && pendingRequests.length === 0 && !error && (
+      {!isLoading && allRequests.length === 0 && !error && (
         <Typography>No requests found.</Typography>
       )}
-      {pendingRequests.length > 0 && (
-        <>
-          {/* Pending Section */}
-          <Typography variant="h5" sx={{ mt: 3, mb: 1 }}>
-            Pending Requests
-          </Typography>
-          <Paper elevation={3} sx={{ mb: 4 }}>
-            <List>
-              {pendingRequests
-                .filter(req => req.status === 'pending')
-                .map((request, index, arr) => (
-                  <React.Fragment key={request.id}>
-                    <ListItem
-                      alignItems="flex-start"
-                      secondaryAction={
-                        <Tooltip title="Mark as Resolved">
-                          <IconButton
-                            edge="end"
-                            aria-label="resolve"
-                            onClick={() => handleResolveRequest(request.id)}
-                          >
-                            <CheckCircleOutlineIcon color="success" />
-                          </IconButton>
-                        </Tooltip>
-                      }
-                    >
-                      <ListItemText
-                        primary={<Typography variant="h6">{request.name} - {request.organization || 'N/A'}</Typography>}
-                        secondary={
-                          <>
-                            <Typography component="span" variant="body2" color="text.primary">
-                              Email: {request.email} | Phone: {request.phone || 'N/A'}
-                            </Typography>
-                            <br />
-                            {request.location?.address && <>Location: {request.location.address}<br /></>}
-                            Stage: {request.stage === 'Other' ? `Other: ${request.otherStageDetail}` : request.stage}
-                            <br />
-                            Status: {request.status}
-                            <br />
-                            Topics: {Array.isArray(request.topics) ? request.topics.join(', ') : request.topics}
-                            <br />
-                            Context: {request.additionalContext}
-                            <br />
-                            Submitted: {request.createdAt instanceof Date ? request.createdAt.toLocaleString() : 'N/A'}
-                          </>
-                        }
-                      />
-                    </ListItem>
-                    {index < arr.length - 1 && <Divider variant="inset" component="li" />}
-                  </React.Fragment>
-                ))}
-            </List>
-          </Paper>
 
-          {/* Other (Resolved, etc.) Section */}
-          <Typography variant="h5" sx={{ mt: 3, mb: 1 }}>
-            Resolved Requests
-          </Typography>
-          <Paper elevation={1}>
-            <List>
-              {pendingRequests
-                .filter(req => req.status !== 'pending')
-                .map((request, index, arr) => (
-                  <React.Fragment key={request.id}>
-                    <ListItem alignItems="flex-start"
-                    secondaryAction={
-                      <Tooltip title="Mark as Pending">
-                        <IconButton
-                          edge="end"
-                          aria-label="mark-pending"
-                          onClick={() => handleResolveRequest(request.id, 'pending')}
-                        >
-                          <ArrowUpwardIcon color="primary" />
-                        </IconButton>
-                      </Tooltip>
-                    }>
-                    <ListItemText
-                      primary={<Typography variant="h6">{request.name} - {request.organization || 'N/A'}</Typography>}
-                      secondary={
-                        <>
-                          <Typography component="span" variant="body2" color="text.primary">
-                            Email: {request.email} | Phone: {request.phone || 'N/A'}
-                          </Typography>
-                          <br />
-                          {request.location?.address && <>Location: {request.location.address}<br /></>}
-                          Stage: {request.stage === 'Other' ? `Other: ${request.otherStageDetail}` : request.stage}
-                          <br />
-                          Status: {request.status}
-                          <br />
-                          Topics: {Array.isArray(request.topics) ? request.topics.join(', ') : request.topics}
-                          <br />
-                          Context: {request.additionalContext}
-                          <br />
-                          Submitted: {request.createdAt instanceof Date ? request.createdAt.toLocaleString() : 'N/A'}
-                        </>
-                      }
-                    />
-                  </ListItem>
-                  {index < arr.length - 1 && <Divider variant="inset" component="li" />}
-                </React.Fragment>
-              ))}
-          </List>
-        </Paper>
-      </>
-    )}
-  </Box>
-);
+      {REGION_ORDER.map(regionName => {
+        const regionData = categorizedRequests[regionName];
+        if (!regionData) return null;
+
+        const totalRequestsInRegion = regionData.New.length + regionData.NearlyDue.length + regionData.Overdue.length + regionData.Resolved.length;
+        if (totalRequestsInRegion === 0 && regionName !== 'Unknown') return null;
+
+        return (
+          <Box key={regionName} sx={{ mb: 4 }}>
+            <Typography variant="h5" component="h2" sx={{ mt: 3, mb: 2, borderBottom: '2px solid #ccc', pb: 1 }}>
+              {REGIONS_CONFIG[regionName]?.name || regionName} ({totalRequestsInRegion})
+            </Typography>
+
+            {Object.entries(regionData).map(([statusKey, requestsInStatus]) => {
+              if (requestsInStatus.length === 0) return null;
+
+              let statusColor = 'text.primary';
+              if (statusKey === 'New') statusColor = 'info.main';
+              else if (statusKey === 'NearlyDue') statusColor = 'warning.main';
+              else if (statusKey === 'Overdue') statusColor = 'error.main';
+              else if (statusKey === 'Resolved') statusColor = 'success.main';
+
+              return (
+                <Box key={statusKey} sx={{ mb:3 }}>
+                  <Typography variant="h6" sx={{ color: statusColor, mb: 1 }}>
+                    {statusKey} ({requestsInStatus.length})
+                  </Typography>
+                  <Paper elevation={1}>
+                    <List>
+                      {requestsInStatus.map((request, index, arr) => (
+                        <React.Fragment key={request.id}>
+                          <ListItem
+                            alignItems="flex-start"
+                            secondaryAction={
+                              request.status === 'pending' ? (
+                                <Tooltip title="Mark as Resolved">
+                                  <IconButton edge="end" aria-label="resolve" onClick={() => handleResolveRequest(request.id, 'resolved')}>
+                                    <CheckCircleOutlineIcon color="success" />
+                                  </IconButton>
+                                </Tooltip>
+                              ) : (
+                                <Tooltip title="Mark as Pending">
+                                  <IconButton edge="end" aria-label="mark-pending" onClick={() => handleResolveRequest(request.id, 'pending')}>
+                                    <ArrowUpwardIcon color="primary" />
+                                  </IconButton>
+                                </Tooltip>
+                              )
+                            }
+                          >
+                            <ListItemText
+                              primary={<Typography variant="subtitle1" sx={{fontWeight: 'bold'}}>{request.name} - {request.organization || 'N/A'}</Typography>}
+                              secondary={
+                                <>
+                                  <Typography component="span" variant="body2" color="text.secondary">
+                                    Email: {request.email} | Phone: {request.phone || 'N/A'}
+                                  </Typography>
+                                  <br />
+                                  {request.location?.address && <>Location: {request.location.address} ({request.region})<br /></>}
+                                  Stage: {request.stage === 'Other' ? `Other: ${request.otherStageDetail}` : request.stage}
+                                  <br />
+                                  Status: <Typography component="span" sx={{ color: request.status === 'pending' ? statusColor : 'success.dark', fontWeight: 'bold'}}>{request.status}</Typography>
+                                  <br />
+                                  Topics: {Array.isArray(request.topics) ? request.topics.join(', ') : request.topics}
+                                  <br />
+                                  Context: {request.additionalContext}
+                                  <br />
+                                  Submitted: {request.createdAt instanceof Date ? request.createdAt.toLocaleString() : (request.createdAt?.toDate ? request.createdAt.toDate().toLocaleString() : 'N/A')}
+                                </>
+                              }
+                            />
+                          </ListItem>
+                          {index < arr.length - 1 && <Divider variant="inset" component="li" />}
+                        </React.Fragment>
+                      ))}
+                    </List>
+                  </Paper>
+                </Box>
+              );
+            })}
+          </Box>
+        );
+      })}
+    </Box>
+  );
 };
 
 export default DashboardPage;

@@ -1,8 +1,9 @@
-import emailjs from '@emailjs/browser';
+import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Snackbar from '@mui/material/Snackbar';
 import Typography from '@mui/material/Typography';
-import { useState, useRef } from 'react';
+import { useRef, useState } from 'react';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { addConsultationRequest } from '../api/consultationService.js';
 import FormTextField from './FormTextField.jsx';
@@ -10,8 +11,6 @@ import LocationAutocomplete from './LocationAutocomplete.jsx';
 import MultiSelectDropdown from './MultiSelectDropdown.jsx';
 import SingleSelectDropdown from './SingleSelectDropdown.jsx';
 import SubmitButton from './SubmitButton.jsx';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
 
 
 const Form = () => {
@@ -118,7 +117,7 @@ const Form = () => {
         const userEmailParams = {
           email: formData.email,
         }
-
+        
         // Send to internal team
         await emailjs.send(
           'service_ifll288',
@@ -134,7 +133,7 @@ const Form = () => {
           userEmailParams,
           'u4mhQkwICrKbOkUfF'
         );
-
+        
         setSubmitMessage("A member of the FirstRepair team will be in touch with you in the next 10 business days.");
         setFormData(initialFormData);
         setFormKey(prevKey => prevKey + 1);

@@ -2,6 +2,7 @@
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import MenuIcon from '@mui/icons-material/Menu'; // Import MenuIcon
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -40,8 +41,13 @@ const DashboardPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isExporting, setIsExporting] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true); // State for sidebar visibility
   const { logout } = useAuth();
   const navigate = useNavigate();
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
 
   const handleLogout = async () => {
     try {
@@ -105,7 +111,7 @@ const DashboardPage = () => {
     const now = new Date();
     allRequests.forEach(request => {
       const region = request.region || 'Unknown';
-      const requestWithTimeline = { ...request }; // Clone request to add timeline info
+      const requestWithTimeline = { ...request };
 
       if (!categorized[region]) {
         categorized[region] = { New: [], NearlyDue: [], Overdue: [], Resolved: [] };
@@ -125,14 +131,14 @@ const DashboardPage = () => {
           const startDate = createdAtDate < now ? createdAtDate : now;
           const endDate = createdAtDate < now ? now : createdAtDate;
           const businessDaysPassed = differenceInBusinessDays(endDate, startDate);
-          requestWithTimeline.businessDaysPassed = businessDaysPassed; // Store it
+          requestWithTimeline.businessDaysPassed = businessDaysPassed;
 
           if (businessDaysPassed <= 5) categorized[region].New.push(requestWithTimeline);
           else if (businessDaysPassed <= 10) categorized[region].NearlyDue.push(requestWithTimeline);
           else categorized[region].Overdue.push(requestWithTimeline);
         } else {
-          requestWithTimeline.businessDaysPassed = null; // Or some indicator for unknown
-          categorized[region].New.push(requestWithTimeline); // Fallback
+          requestWithTimeline.businessDaysPassed = null;
+          categorized[region].New.push(requestWithTimeline);
         }
       }
     });
@@ -166,57 +172,70 @@ const DashboardPage = () => {
       <Box
         component="nav"
         sx={{
-          width: SIDEBAR_WIDTH,
+          width: isSidebarOpen ? SIDEBAR_WIDTH : 0,
           flexShrink: 0,
           position: 'sticky',
           top: (theme) => theme.spacing(2),
           alignSelf: 'flex-start',
           maxHeight: (theme) => `calc(100vh - ${theme.spacing(4)})`,
           overflowY: 'auto',
-          borderRight: (theme) => `1px solid ${theme.palette.divider}`,
-          pb: 2,
+          overflowX: 'hidden', // Hide content when collapsed
+          borderRight: isSidebarOpen ? (theme) => `1px solid ${theme.palette.divider}` : 'none',
+          visibility: isSidebarOpen ? 'visible' : 'hidden',
+          opacity: isSidebarOpen ? 1 : 0,
+          transition: (theme) => theme.transitions.create(['width', 'padding', 'opacity', 'visibility', 'border'], {
+            easing: theme.transitions.easing.sharp,
+            duration: isSidebarOpen ? theme.transitions.duration.enteringScreen : theme.transitions.duration.leavingScreen,
+          }),
+          // Apply padding only when open to prevent layout shift issues when hidden
+          pt: isSidebarOpen ? 0 : 0, // Keep existing top padding logic if any, or set to 0
+          pb: isSidebarOpen ? 2 : 0,
         }}
       >
-        <Typography variant="h6" sx={{ p: 2, pt:0, fontWeight: 'bold' }}>Navigation</Typography>
-        <List dense>
-          {REGION_ORDER.map(regionName => {
-            const regionData = categorizedRequests[regionName];
-            const totalRequestsInRegion = regionData ? STATUS_ORDER.reduce((acc, status) => acc + regionData[status].length, 0) : 0;
+        {isSidebarOpen && ( // Render content only when open or during closing transition
+          <>
+            <Typography variant="h6" sx={{ p: 2, pt:0, fontWeight: 'bold', whiteSpace: 'nowrap' }}>Navigation</Typography>
+            <List dense>
+              {REGION_ORDER.map(regionName => {
+                const regionData = categorizedRequests[regionName];
+                const totalRequestsInRegion = regionData ? STATUS_ORDER.reduce((acc, status) => acc + regionData[status].length, 0) : 0;
 
-            if (totalRequestsInRegion > 0 || (regionName === 'Unknown' && totalRequestsInRegion > 0) ) {
-              return (
-                <React.Fragment key={`sidebar-region-${regionName}`}>
-                  <ListItemButton
-                    onClick={() => handleScrollToSection(`region-${regionName}`)}
-                    sx={{ pl: 2, '&:hover': { backgroundColor: 'action.hover' } }}
-                  >
-                    <ListItemText
-                      primaryTypographyProps={{ fontWeight: 'bold' }}
-                      primary={`${REGIONS_CONFIG[regionName]?.name || regionName} (${totalRequestsInRegion})`}
-                    />
-                  </ListItemButton>
-                  <List dense disablePadding sx={{ pl: 3 }}>
-                    {STATUS_ORDER.map(statusKey => {
-                      if (regionData && regionData[statusKey] && regionData[statusKey].length > 0) {
-                        return (
-                          <ListItemButton
-                            key={`sidebar-status-${regionName}-${statusKey}`}
-                            onClick={() => handleScrollToSection(`status-${regionName}-${statusKey}`)}
-                            sx={{ pl: 2, '&:hover': { backgroundColor: 'action.hover' } }}
-                          >
-                            <ListItemText primary={`${statusKey} (${regionData[statusKey].length})`} />
-                          </ListItemButton>
-                        );
-                      }
-                      return null;
-                    })}
-                  </List>
-                </React.Fragment>
-              );
-            }
-            return null;
-          })}
-        </List>
+                if (totalRequestsInRegion > 0 || (regionName === 'Unknown' && totalRequestsInRegion > 0) ) {
+                  return (
+                    <React.Fragment key={`sidebar-region-${regionName}`}>
+                      <ListItemButton
+                        onClick={() => handleScrollToSection(`region-${regionName}`)}
+                        sx={{ pl: 2, '&:hover': { backgroundColor: 'action.hover' } }}
+                      >
+                        <ListItemText
+                          primaryTypographyProps={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}
+                          primary={`${REGIONS_CONFIG[regionName]?.name || regionName} (${totalRequestsInRegion})`}
+                        />
+                      </ListItemButton>
+                      <List dense disablePadding sx={{ pl: 3 }}>
+                        {STATUS_ORDER.map(statusKey => {
+                          if (regionData && regionData[statusKey] && regionData[statusKey].length > 0) {
+                            return (
+                              <ListItemButton
+                                key={`sidebar-status-${regionName}-${statusKey}`}
+                                onClick={() => handleScrollToSection(`status-${regionName}-${statusKey}`)}
+                                sx={{ pl: 2, '&:hover': { backgroundColor: 'action.hover' } }}
+                              >
+                                <ListItemText primaryTypographyProps={{whiteSpace: 'nowrap'}} primary={`${statusKey} (${regionData[statusKey].length})`} />
+                              </ListItemButton>
+                            );
+                          }
+                          return null;
+                        })}
+                      </List>
+                    </React.Fragment>
+                  );
+                }
+                return null;
+              })}
+            </List>
+          </>
+        )}
       </Box>
 
       {/* Main Content */}
@@ -226,11 +245,26 @@ const DashboardPage = () => {
           flexGrow: 1,
           py: 3,
           px:3,
-          maxWidth: `calc(100% - ${SIDEBAR_WIDTH}px)`,
+          transition: (theme) => theme.transitions.create(['margin-left', 'width'], { // Transition for main content if needed
+            easing: theme.transitions.easing.sharp,
+            duration: isSidebarOpen ? theme.transitions.duration.enteringScreen : theme.transitions.duration.leavingScreen,
+          }),
+          // maxWidth will be 100% of its container, which adjusts due to sidebar
         }}
       >
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h4" component="h1">Admin Dashboard</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <IconButton
+              color="inherit"
+              aria-label="open drawer"
+              onClick={toggleSidebar}
+              edge="start"
+              sx={{ mr: 2 }}
+            >
+              <MenuIcon />
+            </IconButton>
+            <Typography variant="h4" component="h1" noWrap>Admin Dashboard</Typography>
+          </Box>
           <Box>
             <Button variant="contained" color="primary" startIcon={<FileDownloadIcon />} onClick={handleExport} disabled={isExporting} sx={{ mr: 1 }}>
               {isExporting ? 'Exporting...' : 'Export to CSV'}

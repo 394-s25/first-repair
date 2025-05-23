@@ -9,7 +9,7 @@ import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
-import ListItemButton from '@mui/material/ListItemButton'; // Added
+import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import Paper from '@mui/material/Paper';
 import Tooltip from '@mui/material/Tooltip';
@@ -31,9 +31,9 @@ const REGIONS_CONFIG = {
 };
 
 const REGION_ORDER = ['Northeast', 'Midwest', 'South', 'West', 'Unknown'];
-const STATUS_ORDER = ['New', 'NearlyDue', 'Overdue', 'Resolved']; // Define status order for sidebar
+const STATUS_ORDER = ['New', 'NearlyDue', 'Overdue', 'Resolved'];
 
-const SIDEBAR_WIDTH = 260; // Define sidebar width
+const SIDEBAR_WIDTH = 260;
 
 const DashboardPage = () => {
   const [allRequests, setAllRequests] = useState([]);
@@ -105,30 +105,34 @@ const DashboardPage = () => {
     const now = new Date();
     allRequests.forEach(request => {
       const region = request.region || 'Unknown';
-      if (!categorized[region]) { // Should be initialized by REGION_ORDER
+      const requestWithTimeline = { ...request }; // Clone request to add timeline info
+
+      if (!categorized[region]) {
         categorized[region] = { New: [], NearlyDue: [], Overdue: [], Resolved: [] };
       }
 
-      if (request.status !== 'pending') {
-        categorized[region].Resolved.push(request);
+      if (requestWithTimeline.status !== 'pending') {
+        categorized[region].Resolved.push(requestWithTimeline);
       } else {
         let createdAtDate;
-        if (request.createdAt && typeof request.createdAt.toDate === 'function') {
-          createdAtDate = request.createdAt.toDate();
-        } else if (request.createdAt instanceof Date) {
-          createdAtDate = request.createdAt;
+        if (requestWithTimeline.createdAt && typeof requestWithTimeline.createdAt.toDate === 'function') {
+          createdAtDate = requestWithTimeline.createdAt.toDate();
+        } else if (requestWithTimeline.createdAt instanceof Date) {
+          createdAtDate = requestWithTimeline.createdAt;
         }
 
         if (createdAtDate) {
           const startDate = createdAtDate < now ? createdAtDate : now;
           const endDate = createdAtDate < now ? now : createdAtDate;
           const businessDaysPassed = differenceInBusinessDays(endDate, startDate);
+          requestWithTimeline.businessDaysPassed = businessDaysPassed; // Store it
 
-          if (businessDaysPassed <= 5) categorized[region].New.push(request);
-          else if (businessDaysPassed <= 10) categorized[region].NearlyDue.push(request);
-          else categorized[region].Overdue.push(request);
+          if (businessDaysPassed <= 5) categorized[region].New.push(requestWithTimeline);
+          else if (businessDaysPassed <= 10) categorized[region].NearlyDue.push(requestWithTimeline);
+          else categorized[region].Overdue.push(requestWithTimeline);
         } else {
-          categorized[region].New.push(request);
+          requestWithTimeline.businessDaysPassed = null; // Or some indicator for unknown
+          categorized[region].New.push(requestWithTimeline); // Fallback
         }
       }
     });
@@ -165,9 +169,9 @@ const DashboardPage = () => {
           width: SIDEBAR_WIDTH,
           flexShrink: 0,
           position: 'sticky',
-          top: (theme) => theme.spacing(2), // Adjust based on your AppBar height if any
-          alignSelf: 'flex-start', // Important for sticky positioning
-          maxHeight: (theme) => `calc(100vh - ${theme.spacing(4)})`, // Adjust top/bottom spacing
+          top: (theme) => theme.spacing(2),
+          alignSelf: 'flex-start',
+          maxHeight: (theme) => `calc(100vh - ${theme.spacing(4)})`,
           overflowY: 'auto',
           borderRight: (theme) => `1px solid ${theme.palette.divider}`,
           pb: 2,
@@ -179,16 +183,16 @@ const DashboardPage = () => {
             const regionData = categorizedRequests[regionName];
             const totalRequestsInRegion = regionData ? STATUS_ORDER.reduce((acc, status) => acc + regionData[status].length, 0) : 0;
 
-            if (totalRequestsInRegion > 0 || (regionName === 'Unknown' && totalRequestsInRegion > 0) ) { // Only show if region has requests
+            if (totalRequestsInRegion > 0 || (regionName === 'Unknown' && totalRequestsInRegion > 0) ) {
               return (
                 <React.Fragment key={`sidebar-region-${regionName}`}>
                   <ListItemButton
                     onClick={() => handleScrollToSection(`region-${regionName}`)}
                     sx={{ pl: 2, '&:hover': { backgroundColor: 'action.hover' } }}
                   >
-                    <ListItemText 
-                      primaryTypographyProps={{ fontWeight: 'bold' }} // Changed: Make region name bold
-                      primary={`${REGIONS_CONFIG[regionName]?.name || regionName} (${totalRequestsInRegion})`} 
+                    <ListItemText
+                      primaryTypographyProps={{ fontWeight: 'bold' }}
+                      primary={`${REGIONS_CONFIG[regionName]?.name || regionName} (${totalRequestsInRegion})`}
                     />
                   </ListItemButton>
                   <List dense disablePadding sx={{ pl: 3 }}>
@@ -220,10 +224,9 @@ const DashboardPage = () => {
         component="main"
         sx={{
           flexGrow: 1,
-          py: 3, // Keep original padding
+          py: 3,
           px:3,
-          maxWidth: `calc(100% - ${SIDEBAR_WIDTH}px)`, // Adjust if needed
-          // overflowY: 'auto', // Main content area scrolls if it overflows
+          maxWidth: `calc(100% - ${SIDEBAR_WIDTH}px)`,
         }}
       >
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -306,6 +309,11 @@ const DashboardPage = () => {
                                     Context: {request.additionalContext}
                                     <br />
                                     Submitted: {request.createdAt instanceof Date ? request.createdAt.toLocaleString() : (request.createdAt?.toDate ? request.createdAt.toDate().toLocaleString() : 'N/A')}
+                                    {request.status === 'pending' && typeof request.businessDaysPassed === 'number' && (
+                                      <Typography component="span" variant="caption" sx={{ color: statusColor, ml: 0.5 }}>
+                                        ({request.businessDaysPassed} business day{request.businessDaysPassed === 1 ? '' : 's'} since submission)
+                                      </Typography>
+                                    )}
                                   </>
                                 }
                               />

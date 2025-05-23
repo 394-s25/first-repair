@@ -5,7 +5,7 @@ import { db } from '../firebase/firebase_ini';
 export const addConsultationRequest = async (requestData) => {
   try {
     const docRef = await addDoc(collection(db, "consultationRequests"), {
-      ...requestData,
+      ...requestData, // requestData.location should now include 'region'
       status: "pending",
       createdAt: serverTimestamp()
     });

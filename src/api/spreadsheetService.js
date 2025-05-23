@@ -1,5 +1,7 @@
+// filepath: /Users/RayChen/Desktop/CS394/first-repair/src/api/spreadsheetService.js
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase/firebase_ini';
+import { getRegionByState } from '../utils/regionMapping'; // Added import
 
 export const exportToSpreadsheet = async () => {
   let url = null;
@@ -11,6 +13,7 @@ export const exportToSpreadsheet = async () => {
     
     querySnapshot.forEach((doc) => {
       const data = doc.data();
+      const region = data.location?.region || getRegionByState(data.location?.state) || 'Unknown'; // Determine region
       requests.push({
         id: doc.id,
         name: data.name || '',
@@ -19,13 +22,17 @@ export const exportToSpreadsheet = async () => {
         phone: data.phone || '',
         stage: data.stage || '',
         otherStageDetail: data.otherStageDetail || '',
-        topics: Array.isArray(data.topics) ? data.topics.join(', ') : '',
+        topics: Array.isArray(data.topics) ? data.topics.join('; ') : '', // Use semicolon for multi-value
         additionalContext: data.additionalContext || '',
-        location: data.location?.address || '',
+        locationAddress: data.location?.address || '', // Keep original location address
+        locationCity: data.location?.city || '',
+        locationState: data.location?.state || '',
+        locationZipCode: data.location?.zipCode || '',
+        locationRegion: region, // Add region
         status: data.status || '',
         createdAt: data.createdAt && typeof data.createdAt.toDate === 'function' 
                    ? data.createdAt.toDate().toLocaleString() 
-                   : '',
+                   : (data.createdAt instanceof Date ? data.createdAt.toLocaleString() : ''),
       });
     });
 
@@ -40,7 +47,11 @@ export const exportToSpreadsheet = async () => {
       'Other Stage Detail',
       'Topics',
       'Additional Context',
-      'Location',
+      'Location Address',
+      'Location City',
+      'Location State',
+      'Location Zip Code',
+      'Location Region', // Added Region Header
       'Status',
       'Created At'
     ];
@@ -49,38 +60,45 @@ export const exportToSpreadsheet = async () => {
       headers.join(','),
       ...requests.map(request => [
         request.id,
-        `"${request.name.replace(/"/g, '""')}"`,
-        `"${request.organization.replace(/"/g, '""')}"`,
-        `"${request.email.replace(/"/g, '""')}"`,
-        `"${request.phone.replace(/"/g, '""')}"`,
-        `"${request.stage.replace(/"/g, '""')}"`,
-        `"${request.otherStageDetail.replace(/"/g, '""')}"`,
-        `"${request.topics.replace(/"/g, '""')}"`,
-        `"${request.additionalContext.replace(/"/g, '""')}"`,
-        `"${request.location.replace(/"/g, '""')}"`,
-        `"${request.status.replace(/"/g, '""')}"`,
-        `"${request.createdAt}"`
+        `"${(request.name || '').replace(/"/g, '""')}"`,
+        `"${(request.organization || '').replace(/"/g, '""')}"`,
+        `"${(request.email || '').replace(/"/g, '""')}"`,
+        `"${(request.phone || '').replace(/"/g, '""')}"`,
+        `"${(request.stage || '').replace(/"/g, '""')}"`,
+        `"${(request.otherStageDetail || '').replace(/"/g, '""')}"`,
+        `"${(request.topics || '').replace(/"/g, '""')}"`,
+        `"${(request.additionalContext || '').replace(/"/g, '""')}"`,
+        `"${(request.locationAddress || '').replace(/"/g, '""')}"`,
+        `"${(request.locationCity || '').replace(/"/g, '""')}"`,
+        `"${(request.locationState || '').replace(/"/g, '""')}"`,
+        `"${(request.locationZipCode || '').replace(/"/g, '""')}"`,
+        `"${(request.locationRegion || '').replace(/"/g, '""')}"`, // Added Region Data
+        `"${(request.status || '').replace(/"/g, '""')}"`,
+// ...existing code...
+        `"${(request.createdAt || '').replace(/"/g, '""')}"`
       ].join(','))
     ].join('\n');
 
-
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
     url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `consultation_requests_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
+    
+    // Create a link and trigger download
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    const timestamp = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    link.setAttribute("download", `consultation_requests_${timestamp}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url); // Clean up
 
     return { success: true };
+
   } catch (error) {
-    console.error('Error exporting to spreadsheet:', error);
-    return { success: false, error };
-  } finally {
+    console.error("Error exporting to spreadsheet: ", error);
     if (url) {
-      URL.revokeObjectURL(url); // Revoke URL in the finally block
+      URL.revokeObjectURL(url); // Clean up if error occurs after blob creation
     }
+    return { success: false, error: error };
   }
-}; 
+};

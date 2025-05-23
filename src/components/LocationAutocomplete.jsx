@@ -1,4 +1,7 @@
-import GooglePlacesAutocomplete, { geocodeByAddress, getLatLng } from 'react-google-places-autocomplete';
+import GooglePlacesAutocomplete from 'react-google-places-autocomplete';
+// geocodeByAddress and getLatLng are no longer directly used from this library's exports
+// as we are using window.google.maps.Geocoder for more control.
+import { getRegionByState } from '../utils/regionMapping';
 
 const LocationAutocomplete = ({ value, onPlaceSelected }) => {
   const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -15,28 +18,56 @@ const LocationAutocomplete = ({ value, onPlaceSelected }) => {
   const handleSelect = async (place) => {
     if (onPlaceSelected && place && place.value) {
       try {
-        const results = await geocodeByAddress(place.label);
-        const latLng = await getLatLng(results[0]);
+        // Use direct geocoder call to specify language and component restrictions
+        const geocoder = new window.google.maps.Geocoder();
+        const geocodeResult = await new Promise((resolve, reject) => {
+          geocoder.geocode(
+            // Requesting English and restricting to US should help with consistency
+            { placeId: place.value.place_id, language: 'en', region: 'US' },
+            (results, status) => {
+              if (status === 'OK' && results && results[0]) {
+                resolve(results[0]);
+              } else {
+                reject(new Error('Geocode was not successful for the following reason: ' + status));
+              }
+            }
+          );
+        });
 
-        const addressComponents = results[0].address_components;
-        const getAddressComponent = (type) => {
-          const component = addressComponents.find(c => c.types.includes(type));
-          return component ? component.long_name : '';
+        const latLng = {
+          lat: geocodeResult.geometry.location.lat(),
+          lng: geocodeResult.geometry.location.lng(),
+        };
+        const addressComponents = geocodeResult.address_components;
+
+        const getAddressComp = (components, type, nameType = 'long_name') => {
+          const component = components.find(c => c.types.includes(type));
+          return component ? component[nameType] : '';
         };
 
+        const stateCode = getAddressComp(addressComponents, 'administrative_area_level_1', 'short_name');
+        const region = getRegionByState(stateCode); // Get region using the state code
+
         const selectedLocationData = {
-          address: place.label,
+          address: geocodeResult.formatted_address, // Use formatted_address from geocoder for consistency
           placeId: place.value.place_id,
           coordinates: latLng,
-          city: getAddressComponent('locality') || getAddressComponent('sublocality_level_1'),
-          state: getAddressComponent('administrative_area_level_1'),
-          country: getAddressComponent('country'),
-          zipCode: getAddressComponent('postal_code'),
+          city: getAddressComp(addressComponents, 'locality', 'long_name') || getAddressComp(addressComponents, 'sublocality_level_1', 'long_name'),
+          state: stateCode, // This will be the state code e.g., "NY"
+          country: getAddressComp(addressComponents, 'country', 'short_name'), // This will be "US"
+          zipCode: getAddressComp(addressComponents, 'postal_code', 'long_name'),
+          region: region,
         };
         onPlaceSelected(selectedLocationData);
       } catch (error) {
         console.error("Error processing place selection:", error);
-        onPlaceSelected({ address: place.label, placeId: place.value?.place_id });
+        // Fallback if geocoding fails
+        onPlaceSelected({
+          address: place.label, // Use the initially selected label as a fallback
+          placeId: place.value?.place_id,
+          region: 'Unknown',
+          city: '', state: '', country: '', zipCode: '', coordinates: null
+        });
       }
     } else {
       onPlaceSelected(null);
@@ -107,7 +138,7 @@ const LocationAutocomplete = ({ value, onPlaceSelected }) => {
   return (
     <div style={{ width: '100%', margin: '8px 0' }}>
       <GooglePlacesAutocomplete
-        apiKey={googleMapsApiKey}
+        apiKey={googleMapsApiKey} // Ensure this is correctly passed
         selectProps={{
           value: value ? { label: value.address, value: value } : null,
           onChange: handleSelect,
@@ -116,6 +147,7 @@ const LocationAutocomplete = ({ value, onPlaceSelected }) => {
           styles: customSelectStyles,
         }}
         autocompletionRequest={{
+          // These restrictions help ensure the suggestions are US-based and in English
           componentRestrictions: { country: 'us' },
           language: 'en',
         }}

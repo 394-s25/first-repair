@@ -2,10 +2,13 @@
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
-import MenuIcon from '@mui/icons-material/Menu'; // Import MenuIcon
+import MenuIcon from '@mui/icons-material/Menu';
+import ExpandLess from '@mui/icons-material/ExpandLess';
+import ExpandMore from '@mui/icons-material/ExpandMore';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
+import Collapse from '@mui/material/Collapse';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
 import List from '@mui/material/List';
@@ -34,6 +37,14 @@ const REGIONS_CONFIG = {
 const REGION_ORDER = ['Northeast', 'Midwest', 'South', 'West', 'Unknown'];
 const STATUS_ORDER = ['New', 'NearlyDue', 'Overdue', 'Resolved'];
 
+// Add a mapping for status display names
+const STATUS_DISPLAY_NAMES = {
+  New: 'New',
+  NearlyDue: 'Nearly Due',
+  Overdue: 'Overdue',
+  Resolved: 'Resolved'
+};
+
 const SIDEBAR_WIDTH = 260;
 
 const DashboardPage = () => {
@@ -44,6 +55,7 @@ const DashboardPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true); // State for sidebar visibility
   const { logout } = useAuth();
   const navigate = useNavigate();
+  const [openRegions, setOpenRegions] = useState({});
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -152,6 +164,44 @@ const DashboardPage = () => {
     }
   };
 
+  const handleRegionClick = (regionName) => {
+    setOpenRegions(prev => ({
+      ...prev,
+      [regionName]: !prev[regionName]
+    }));
+  };
+
+  const getTotalCountsByStatus = () => {
+    const totals = { New: 0, NearlyDue: 0, Overdue: 0, Resolved: 0 };
+    const now = new Date();
+
+    allRequests.forEach(request => {
+      if (request.status === 'resolved') {
+        totals.Resolved++;
+      } else if (request.status === 'pending') {
+        let createdAtDate;
+        if (request.createdAt && typeof request.createdAt.toDate === 'function') {
+          createdAtDate = request.createdAt.toDate();
+        } else if (request.createdAt instanceof Date) {
+          createdAtDate = request.createdAt;
+        }
+
+        if (createdAtDate) {
+          const startDate = createdAtDate < now ? createdAtDate : now;
+          const endDate = createdAtDate < now ? now : createdAtDate;
+          const businessDaysPassed = differenceInBusinessDays(endDate, startDate);
+
+          if (businessDaysPassed <= 5) totals.New++;
+          else if (businessDaysPassed <= 10) totals.NearlyDue++;
+          else totals.Overdue++;
+        } else {
+          totals.New++; // If no date, treat as new
+        }
+      }
+    });
+    return totals;
+  };
+
   if (isLoading && allRequests.length === 0) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
@@ -169,7 +219,8 @@ const DashboardPage = () => {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'row' }}>
       {/* Sidebar */}
-      <Box
+      
+      <Box  
         component="nav"
         sx={{
           width: isSidebarOpen ? SIDEBAR_WIDTH : 0,
@@ -179,7 +230,7 @@ const DashboardPage = () => {
           alignSelf: 'flex-start',
           maxHeight: (theme) => `calc(100vh - ${theme.spacing(4)})`,
           overflowY: 'auto',
-          overflowX: 'hidden', // Hide content when collapsed
+          overflowX: 'hidden',
           borderRight: isSidebarOpen ? (theme) => `1px solid ${theme.palette.divider}` : 'none',
           visibility: isSidebarOpen ? 'visible' : 'hidden',
           opacity: isSidebarOpen ? 1 : 0,
@@ -187,47 +238,65 @@ const DashboardPage = () => {
             easing: theme.transitions.easing.sharp,
             duration: isSidebarOpen ? theme.transitions.duration.enteringScreen : theme.transitions.duration.leavingScreen,
           }),
-          // Apply padding only when open to prevent layout shift issues when hidden
-          pt: isSidebarOpen ? 0 : 0, // Keep existing top padding logic if any, or set to 0
+          pt: isSidebarOpen ? 0 : 0,
           pb: isSidebarOpen ? 2 : 0,
         }}
       >
-        {isSidebarOpen && ( // Render content only when open or during closing transition
+        {isSidebarOpen && (
           <>
-            <Typography variant="h6" sx={{ p: 2, pt:0, fontWeight: 'bold', whiteSpace: 'nowrap' }}>Navigation</Typography>
+            <Typography variant="h6" sx={{ p: 2, pt: 0, fontWeight: 'bold', whiteSpace: 'nowrap' }}>Regions</Typography>
             <List dense>
               {REGION_ORDER.map(regionName => {
                 const regionData = categorizedRequests[regionName];
                 const totalRequestsInRegion = regionData ? STATUS_ORDER.reduce((acc, status) => acc + regionData[status].length, 0) : 0;
 
-                if (totalRequestsInRegion > 0 || (regionName === 'Unknown' && totalRequestsInRegion > 0) ) {
+                if (totalRequestsInRegion > 0 || (regionName === 'Unknown' && totalRequestsInRegion > 0)) {
                   return (
                     <React.Fragment key={`sidebar-region-${regionName}`}>
                       <ListItemButton
-                        onClick={() => handleScrollToSection(`region-${regionName}`)}
+                        onClick={() => handleRegionClick(regionName)}
                         sx={{ pl: 2, '&:hover': { backgroundColor: 'action.hover' } }}
                       >
                         <ListItemText
                           primaryTypographyProps={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}
                           primary={`${REGIONS_CONFIG[regionName]?.name || regionName} (${totalRequestsInRegion})`}
                         />
+                        {openRegions[regionName] ? <ExpandLess /> : <ExpandMore />}
                       </ListItemButton>
-                      <List dense disablePadding sx={{ pl: 3 }}>
-                        {STATUS_ORDER.map(statusKey => {
-                          if (regionData && regionData[statusKey] && regionData[statusKey].length > 0) {
-                            return (
-                              <ListItemButton
-                                key={`sidebar-status-${regionName}-${statusKey}`}
-                                onClick={() => handleScrollToSection(`status-${regionName}-${statusKey}`)}
-                                sx={{ pl: 2, '&:hover': { backgroundColor: 'action.hover' } }}
-                              >
-                                <ListItemText primaryTypographyProps={{whiteSpace: 'nowrap'}} primary={`${statusKey} (${regionData[statusKey].length})`} />
-                              </ListItemButton>
-                            );
-                          }
-                          return null;
-                        })}
-                      </List>
+                      <Collapse in={openRegions[regionName]} timeout="auto" unmountOnExit>
+                        <List dense disablePadding sx={{ pl: 3 }}>
+                          {STATUS_ORDER.map(statusKey => {
+                            if (regionData && regionData[statusKey] && regionData[statusKey].length > 0) {
+                              let statusColor = 'text.primary';
+                              if (statusKey === 'New') statusColor = 'info.main';
+                              else if (statusKey === 'NearlyDue') statusColor = 'warning.main';
+                              else if (statusKey === 'Overdue') statusColor = 'error.main';
+                              else if (statusKey === 'Resolved') statusColor = 'success.main';
+
+                              return (
+                                <ListItemButton
+                                  key={`sidebar-status-${regionName}-${statusKey}`}
+                                  onClick={() => handleScrollToSection(`status-${regionName}-${statusKey}`)}
+                                  sx={{ 
+                                    pl: 2, 
+                                    '&:hover': { backgroundColor: 'action.hover' },
+                                    color: statusColor
+                                  }}
+                                >
+                                  <ListItemText 
+                                    primaryTypographyProps={{
+                                      whiteSpace: 'nowrap',
+                                      color: statusColor
+                                    }} 
+                                    primary={`${STATUS_DISPLAY_NAMES[statusKey]} (${regionData[statusKey].length})`} 
+                                  />
+                                </ListItemButton>
+                              );
+                            }
+                            return null;
+                          })}
+                        </List>
+                      </Collapse>
                     </React.Fragment>
                   );
                 }
@@ -273,6 +342,42 @@ const DashboardPage = () => {
           </Box>
         </Box>
 
+        {/* Summary Section */}
+        <Paper elevation={2} sx={{ p: 2, mb: 4 }}>
+          <Typography variant="h6" sx={{ mb: 2 }}>Summary</Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
+            {STATUS_ORDER.map(statusKey => {
+              const totalCount = getTotalCountsByStatus()[statusKey];
+              let statusColor = 'text.primary';
+              if (statusKey === 'New') statusColor = 'info.main';
+              else if (statusKey === 'NearlyDue') statusColor = 'warning.main';
+              else if (statusKey === 'Overdue') statusColor = 'error.main';
+              else if (statusKey === 'Resolved') statusColor = 'success.main';
+
+              return (
+                <Paper
+                  key={statusKey}
+                  elevation={1}
+                  sx={{
+                    p: 1.5,
+                    minWidth: 120,
+                    borderLeft: 3,
+                    borderColor: statusColor,
+                    bgcolor: 'background.paper'
+                  }}
+                >
+                  <Typography variant="h5" sx={{ color: statusColor, fontWeight: 'bold' }}>
+                    {totalCount}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {STATUS_DISPLAY_NAMES[statusKey]}
+                  </Typography>
+                </Paper>
+              );
+            })}
+          </Box>
+        </Paper>
+
         {isLoading && <CircularProgress size={24} sx={{ mb: 2 }} />}
         {!isLoading && allRequests.length === 0 && !error && (<Typography>No requests found.</Typography>)}
 
@@ -301,7 +406,7 @@ const DashboardPage = () => {
                 return (
                   <Box key={statusKey} sx={{ mb:3 }} >
                     <Typography variant="h6" id={`status-${regionName}-${statusKey}`} sx={{ color: statusColor, mb: 1, scrollMarginTop: '70px'  }}>
-                      {statusKey} ({requestsInStatus.length})
+                      {STATUS_DISPLAY_NAMES[statusKey]} ({requestsInStatus.length})
                     </Typography>
                     <Paper elevation={1}>
                       <List>

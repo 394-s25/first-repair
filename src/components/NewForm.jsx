@@ -3,6 +3,7 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Snackbar from '@mui/material/Snackbar';
 import Typography from '@mui/material/Typography';
+import emailjs from 'emailjs-com';
 import { useRef, useState } from 'react';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { addConsultationRequest } from '../api/consultationService.js';
@@ -359,6 +360,15 @@ const Form = () => {
         </Box>
 
         {stepError && <Typography color="error" sx={{ mt: 2 }}>{stepError}</Typography>}
+        {/* Display submitMessage if it's an error and not on the final success step */}
+        {submitMessage && formStep !== 3 && (
+          <Typography 
+            color={submitMessage.startsWith('Error:') || submitMessage.startsWith('Please fill in') || submitMessage.startsWith('Please elaborate on the stage') ? 'error' : 'success.main'} 
+            sx={{ mt: 2 }}
+          >
+            {submitMessage}
+          </Typography>
+        )}
 
         <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
           {formStep > 0 && formStep < 3 && (

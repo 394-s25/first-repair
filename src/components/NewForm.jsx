@@ -227,7 +227,7 @@ const Form = () => {
         return (
           <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
             <Typography variant="subtitle2" color="success.main" sx={{ mb: 1 }}>Step 2/4</Typography>
-            <Typography variant="h6" sx={{ fontWeight: 900, fontSize: '2rem' }}>Some New Text</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 900, fontSize: '2rem' }}>About You</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Please fill out the following information to help us understand your needs better.</Typography>
 
             <FormTextField label="Name" variant="outlined" name="name" value={formData.name} onChange={handleChange} required sx={{ borderRadius: 2, backgroundColor: '#f8f9fa' }} />

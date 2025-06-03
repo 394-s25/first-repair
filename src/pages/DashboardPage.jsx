@@ -1,10 +1,10 @@
 // File: src/pages/DashboardPage.jsx
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-import FileDownloadIcon from '@mui/icons-material/FileDownload';
-import MenuIcon from '@mui/icons-material/Menu';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import MenuIcon from '@mui/icons-material/Menu';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -53,6 +53,7 @@ const DashboardPage = () => {
   const [error, setError] = useState('');
   const [isExporting, setIsExporting] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true); // State for sidebar visibility
+  const [latestRequestData, setLatestRequestData] = useState(null); // State for the latest request
   const { logout } = useAuth();
   const navigate = useNavigate();
   const [openRegions, setOpenRegions] = useState({});
@@ -89,6 +90,75 @@ const DashboardPage = () => {
   useEffect(() => {
     fetchRequests();
   }, [fetchRequests]);
+
+  useEffect(() => {
+    if (allRequests.length > 0) {
+      let mostRecentRequest = null;
+      let maxTimestamp = null;
+
+      allRequests.forEach(req => {
+        let currentTimestamp;
+        if (req.createdAt && typeof req.createdAt.toDate === 'function') {
+          currentTimestamp = req.createdAt.toDate();
+        } else if (req.createdAt instanceof Date) {
+          currentTimestamp = req.createdAt;
+        } else {
+          return; // Skip if no valid createdAt
+        }
+
+        if (!maxTimestamp || currentTimestamp > maxTimestamp) {
+          maxTimestamp = currentTimestamp;
+          mostRecentRequest = req;
+        }
+      });
+
+      if (mostRecentRequest) {
+        const now = new Date();
+        let dynamicStatus = 'New'; // Default
+        let businessDays = null;
+        let displayStatusColor = 'info.main'; // Default for New
+
+        if (mostRecentRequest.status !== 'pending') {
+          dynamicStatus = 'Resolved';
+          displayStatusColor = 'success.main';
+        } else {
+          let createdAtDate;
+          if (mostRecentRequest.createdAt && typeof mostRecentRequest.createdAt.toDate === 'function') {
+            createdAtDate = mostRecentRequest.createdAt.toDate();
+          } else if (mostRecentRequest.createdAt instanceof Date) {
+            createdAtDate = mostRecentRequest.createdAt;
+          }
+
+          if (createdAtDate) {
+            const startDate = createdAtDate < now ? createdAtDate : now;
+            const endDate = createdAtDate < now ? now : createdAtDate;
+            businessDays = differenceInBusinessDays(endDate, startDate);
+
+            if (businessDays <= 5) {
+              dynamicStatus = 'New';
+              displayStatusColor = 'info.main';
+            } else if (businessDays <= 10) {
+              dynamicStatus = 'NearlyDue';
+              displayStatusColor = 'warning.main';
+            } else {
+              dynamicStatus = 'Overdue';
+              displayStatusColor = 'error.main';
+            }
+          }
+        }
+        setLatestRequestData({
+          ...mostRecentRequest,
+          dynamicDisplayStatus: dynamicStatus,
+          businessDaysPassed: businessDays,
+          displayStatusColor: displayStatusColor,
+        });
+      } else {
+        setLatestRequestData(null);
+      }
+    } else {
+      setLatestRequestData(null);
+    }
+  }, [allRequests]);
 
   const handleResolveRequest = async (requestId, newStatus) => {
     const result = await updateConsultationRequestStatus(requestId, newStatus);
@@ -246,6 +316,24 @@ const DashboardPage = () => {
           <>
             <Typography variant="h6" sx={{ p: 2, pt: 0, fontWeight: 'bold', whiteSpace: 'nowrap' }}>Regions</Typography>
             <List dense>
+              {/* Latest Request Sidebar Item */}
+              {latestRequestData && (
+                <ListItemButton
+                  onClick={() => handleScrollToSection('latest-request-section')}
+                  sx={{ pl: 2, '&:hover': { backgroundColor: 'action.hover' } }}
+                >
+                  <ListItemText
+                    primaryTypographyProps={{ fontWeight: 'bold', whiteSpace: 'nowrap', color: 'primary.main' }}
+                    primary="Latest Request"
+                  />
+                </ListItemButton>
+              )}
+              {/* Divider if latest request and regions are both present */}
+              {latestRequestData && REGION_ORDER.some(regionName => {
+                const regionData = categorizedRequests[regionName];
+                return regionData && STATUS_ORDER.reduce((acc, status) => acc + regionData[status].length, 0) > 0;
+              }) && <Divider sx={{ my: 1 }} />}
+
               {REGION_ORDER.map(regionName => {
                 const regionData = categorizedRequests[regionName];
                 const totalRequestsInRegion = regionData ? STATUS_ORDER.reduce((acc, status) => acc + regionData[status].length, 0) : 0;
@@ -378,8 +466,68 @@ const DashboardPage = () => {
           </Box>
         </Paper>
 
+        {/* Latest Request Section */}
+        {latestRequestData && (
+          <Box sx={{ mb: 4 }} id="latest-request-section"> {/* Added id here */}
+            <Typography variant="h5" component="h2" sx={{ mt: 3, mb: 2, borderBottom: '2px solid #ccc', pb: 1 }}>
+              Latest Request
+            </Typography>
+            <Paper elevation={1}>
+              <List>
+                <ListItem
+                  alignItems="flex-start"
+                  secondaryAction={
+                    latestRequestData.status === 'pending' ? (
+                      <Tooltip title="Mark as Resolved">
+                        <IconButton edge="end" aria-label="resolve" onClick={() => handleResolveRequest(latestRequestData.id, 'resolved')}>
+                          <CheckCircleOutlineIcon color="success" />
+                        </IconButton>
+                      </Tooltip>
+                    ) : (
+                      <Tooltip title="Mark as Pending">
+                        <IconButton edge="end" aria-label="mark-pending" onClick={() => handleResolveRequest(latestRequestData.id, 'pending')}>
+                          <ArrowUpwardIcon color="primary" />
+                        </IconButton>
+                      </Tooltip>
+                    )
+                  }
+                >
+                  <ListItemText
+                    primary={<Typography variant="subtitle1" sx={{fontWeight: 'bold'}}>{latestRequestData.name} - {latestRequestData.organization || 'N/A'}</Typography>}
+                    secondary={
+                      <>
+                        <Typography component="span" variant="body2" color="text.secondary">
+                          Email: {latestRequestData.email} | Phone: {latestRequestData.phone || 'N/A'}
+                        </Typography>
+                        <br />
+                        {latestRequestData.location?.address && <>Location: {latestRequestData.location.address} ({latestRequestData.region})<br /></>}
+                        Stage: {latestRequestData.stage === 'Other' ? `Other: ${latestRequestData.otherStageDetail}` : latestRequestData.stage}
+                        <br />
+                        Status: <Typography component="span" sx={{ color: latestRequestData.status === 'pending' ? latestRequestData.displayStatusColor : 'success.dark', fontWeight: 'bold'}}>
+                                  {latestRequestData.status === 'pending' ? STATUS_DISPLAY_NAMES[latestRequestData.dynamicDisplayStatus] : STATUS_DISPLAY_NAMES.Resolved}
+                                </Typography>
+                        <br />
+                        Topics: {Array.isArray(latestRequestData.topics) ? latestRequestData.topics.join(', ') : latestRequestData.topics}
+                        <br />
+                        Context: {latestRequestData.additionalContext}
+                        <br />
+                        Submitted: {latestRequestData.createdAt instanceof Date ? latestRequestData.createdAt.toLocaleString() : (latestRequestData.createdAt?.toDate ? latestRequestData.createdAt.toDate().toLocaleString() : 'N/A')}
+                        {latestRequestData.status === 'pending' && typeof latestRequestData.businessDaysPassed === 'number' && (
+                          <Typography component="span" variant="caption" sx={{ color: latestRequestData.displayStatusColor, ml: 0.5 }}>
+                            ({latestRequestData.businessDaysPassed} business day{latestRequestData.businessDaysPassed === 1 ? '' : 's'} since submission)
+                          </Typography>
+                        )}
+                      </>
+                    }
+                  />
+                </ListItem>
+              </List>
+            </Paper>
+          </Box>
+        )}
+
         {isLoading && <CircularProgress size={24} sx={{ mb: 2 }} />}
-        {!isLoading && allRequests.length === 0 && !error && (<Typography>No requests found.</Typography>)}
+        {!isLoading && allRequests.length === 0 && !error && !latestRequestData && (<Typography>No requests found.</Typography>)}
 
         {REGION_ORDER.map(regionName => {
           const regionData = categorizedRequests[regionName];

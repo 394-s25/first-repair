@@ -6,6 +6,15 @@ import { getAllConsultationRequests, updateConsultationRequestStatus } from '../
 import { useAuth } from '../contexts/AuthContext';
 import DashboardPage from '../pages/DashboardPage';
 
+// Mock the Firebase initialization
+vi.mock('../firebase/firebase_ini.js', () => ({
+  auth: {
+    onAuthStateChanged: vi.fn(() => vi.fn()), // Mock onAuthStateChanged to return an unsubscribe function
+    // Add other auth methods if needed by useAuth or other parts, though likely not for this test
+  },
+  db: {} // Mock db if it were used directly by DashboardPage or its children
+}));
+
 // Mock the consultation service
 vi.mock('../api/consultationService', () => ({
   updateConsultationRequestStatus: vi.fn(),

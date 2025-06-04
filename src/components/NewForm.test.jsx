@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import emailjs from 'emailjs-com'; // Import the mocked module
+import React from 'react'; // Import React for forwardRef
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { addConsultationRequest } from '../api/consultationService.js'; // Import the mocked function
 import Form from './NewForm.jsx';
@@ -10,9 +11,16 @@ import Form from './NewForm.jsx';
 // Keep track of the onChange callback passed to the mock ReCAPTCHA
 let recaptchaOnChangeCallback = null;
 vi.mock('react-google-recaptcha', () => ({
-  default: vi.fn().mockImplementation((props) => {
+  default: React.forwardRef((props, ref) => { // Use React.forwardRef
     // Store the onChange prop so we can call it
     recaptchaOnChangeCallback = props.onChange;
+    // If a ref is passed, you can assign it or parts of it if needed by the component logic
+    // For this mock, we might not need to do much with the ref itself,
+    // but forwardRef ensures React handles it correctly.
+    if (ref) {
+      // Example: if the parent component tries to call methods on the ref:
+      // ref.current = { reset: vi.fn(), getValue: vi.fn().mockReturnValue('mock-token') };
+    }
     return (
       <div data-testid="mock-recaptcha" onClick={() => {
         if (recaptchaOnChangeCallback) {

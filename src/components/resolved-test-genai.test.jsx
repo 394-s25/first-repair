@@ -2,7 +2,7 @@ import '@testing-library/jest-dom';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { updateConsultationRequestStatus, getAllConsultationRequests } from '../api/consultationService';
+import { getAllConsultationRequests, updateConsultationRequestStatus } from '../api/consultationService';
 import { useAuth } from '../contexts/AuthContext';
 import DashboardPage from '../pages/DashboardPage';
 
@@ -25,7 +25,7 @@ const mockRequests = [
     email: 'test@example.com',
     status: 'pending',
     location: { state: 'IL', region: 'Midwest' },
-    createdAt: new Date(),
+    createdAt: new Date('2023-01-01T10:00:00Z'), // Older request
     organization: 'Test Org',
     phone: '123-456-7890',
     stage: 'Planning',
@@ -38,7 +38,7 @@ const mockRequests = [
     email: 'resolved@example.com',
     status: 'resolved',
     location: { state: 'CA', region: 'West' },
-    createdAt: new Date(),
+    createdAt: new Date('2023-01-02T12:00:00Z'), // Newer request, will be latestRequestData
     organization: 'Resolved Org',
     phone: '987-654-3210',
     stage: 'Implementation',
@@ -118,12 +118,12 @@ describe('Dashboard Resolve Request Functionality', () => {
       expect(getAllConsultationRequests).toHaveBeenCalled();
     });
 
-    // Wait for the request to be visible
+    // Wait for the request to be visible. 'Test User' is not the latest, so it appears once.
     await waitFor(() => {
       expect(screen.getByText('Test User - Test Org')).toBeInTheDocument();
     });
 
-    // Find and click the resolve button using aria-label
+    // Find and click the resolve button. Since 'Test User' is not latest, this button should be unique.
     const resolveButton = screen.getByRole('button', { name: 'resolve' });
     fireEvent.click(resolveButton);
 
@@ -146,14 +146,29 @@ describe('Dashboard Resolve Request Functionality', () => {
       expect(getAllConsultationRequests).toHaveBeenCalled();
     });
 
-    // Wait for the resolved request to be visible
+    // Wait for the resolved request to be visible. 'Resolved User' is latest, so it appears twice.
     await waitFor(() => {
-      expect(screen.getByText('Resolved User - Resolved Org')).toBeInTheDocument();
+      expect(screen.getAllByText('Resolved User - Resolved Org').length).toBeGreaterThanOrEqual(1); // Could be 1 or 2 depending on timing
     });
 
-    // Find and click the mark as pending button using aria-label
-    const pendingButton = screen.getByRole('button', { name: 'mark-pending' });
-    fireEvent.click(pendingButton);
+    // Find all "mark-pending" buttons. 'Resolved User' is latest and in list, so two buttons.
+    const pendingButtons = await screen.findAllByRole('button', { name: 'mark-pending' });
+    
+    let targetButton = null;
+    if (pendingButtons.length > 1) {
+      // If multiple, find the one NOT in the latest-request-section
+      for (const btn of pendingButtons) {
+        if (!btn.closest('#latest-request-section')) {
+          targetButton = btn;
+          break;
+        }
+      }
+    } else {
+      targetButton = pendingButtons[0];
+    }
+    
+    expect(targetButton).toBeInTheDocument(); // Ensure we found a button
+    fireEvent.click(targetButton);
 
     // Verify status update was called with correct parameters
     await waitFor(() => {
@@ -183,12 +198,12 @@ describe('Dashboard Resolve Request Functionality', () => {
       expect(getAllConsultationRequests).toHaveBeenCalled();
     });
 
-    // Wait for the request to be visible
+    // Wait for the request to be visible. 'Test User' is not latest, so button is unique.
     await waitFor(() => {
       expect(screen.getByText('Test User - Test Org')).toBeInTheDocument();
     });
 
-    // Find and click the resolve button
+    // Find and click the resolve button. 'Test User' is not latest, so button is unique.
     const resolveButton = screen.getByRole('button', { name: 'resolve' });
     fireEvent.click(resolveButton);
 

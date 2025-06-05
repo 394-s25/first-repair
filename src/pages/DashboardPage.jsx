@@ -1,6 +1,7 @@
 // File: src/pages/DashboardPage.jsx
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever'; // Added
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
@@ -9,6 +10,11 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 import Collapse from '@mui/material/Collapse';
+import Dialog from '@mui/material/Dialog'; // Added
+import DialogActions from '@mui/material/DialogActions'; // Added
+import DialogContent from '@mui/material/DialogContent'; // Added
+import DialogContentText from '@mui/material/DialogContentText'; // Added
+import DialogTitle from '@mui/material/DialogTitle'; // Added
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
 import List from '@mui/material/List';
@@ -16,12 +22,13 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import Paper from '@mui/material/Paper';
+import TextField from '@mui/material/TextField'; // Added
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import { differenceInBusinessDays } from 'date-fns';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAllConsultationRequests, updateConsultationRequestStatus } from '../api/consultationService';
+import { deleteAllConsultationRequests, getAllConsultationRequests, updateConsultationRequestStatus } from '../api/consultationService'; // Added deleteAllConsultationRequests
 import { exportToSpreadsheet } from '../api/spreadsheetService';
 import { useAuth } from '../contexts/AuthContext';
 import { getRegionByState, MIDWEST_STATES, NORTHEAST_STATES, SOUTH_STATES, WEST_STATES } from '../utils/regionMapping';
@@ -54,6 +61,8 @@ const DashboardPage = () => {
   const [isExporting, setIsExporting] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true); // State for sidebar visibility
   const [latestRequestData, setLatestRequestData] = useState(null); // State for the latest request
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false); // Added
+  const [deleteConfirmText, setDeleteConfirmText] = useState(''); // Added
   const { logout } = useAuth();
   const navigate = useNavigate();
   const [openRegions, setOpenRegions] = useState({});
@@ -181,6 +190,34 @@ const DashboardPage = () => {
       alert('An error occurred while exporting the data.');
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const handleOpenDeleteDialog = () => {
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleCloseDeleteDialog = () => {
+    setIsDeleteDialogOpen(false);
+    setDeleteConfirmText('');
+  };
+
+  const handleConfirmDeleteAll = async () => {
+    if (deleteConfirmText === "Delete All") {
+      setIsLoading(true);
+      const result = await deleteAllConsultationRequests();
+      if (result.success) {
+        setAllRequests([]); 
+        setLatestRequestData(null);
+        await fetchRequests(); // Refetch to confirm empty state
+        alert('All requests deleted successfully.');
+      } else {
+        alert(`Failed to delete all requests: ${result.error?.message || 'Unknown error'}`);
+      }
+      setIsLoading(false);
+      handleCloseDeleteDialog();
+    } else {
+      alert("Confirmation text does not match. Deletion cancelled.");
     }
   };
 
@@ -426,6 +463,9 @@ const DashboardPage = () => {
             <Button variant="contained" color="primary" startIcon={<FileDownloadIcon />} onClick={handleExport} disabled={isExporting} sx={{ mr: 1 }}>
               {isExporting ? 'Exporting...' : 'Export to CSV'}
             </Button>
+            <Button variant="contained" color="error" startIcon={<DeleteForeverIcon />} onClick={handleOpenDeleteDialog} sx={{ mr: 1 }} disabled={isLoading || allRequests.length === 0}>
+              Delete All Requests
+            </Button>
             <Button variant="outlined" color="secondary" onClick={handleLogout}>Logout</Button>
           </Box>
         </Box>
@@ -617,6 +657,38 @@ const DashboardPage = () => {
           );
         })}
       </Box>
+      
+      {/* Delete All Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onClose={handleCloseDeleteDialog}>
+        <DialogTitle>Confirm Delete All Requests</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            This action will permanently delete all consultation requests. This cannot be undone.
+            To confirm, please type "Delete All" in the box below.
+          </DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="delete-confirm-text"
+            label="Type 'Delete All'"
+            type="text"
+            fullWidth
+            variant="standard"
+            value={deleteConfirmText}
+            onChange={(e) => setDeleteConfirmText(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDeleteDialog}>Cancel</Button>
+          <Button 
+            onClick={handleConfirmDeleteAll} 
+            color="error"
+            disabled={deleteConfirmText !== "Delete All"}
+          >
+            Delete All
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

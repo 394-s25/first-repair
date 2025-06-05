@@ -1,6 +1,6 @@
+import emailjs from '@emailjs/browser'; // Import the mocked module
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import emailjs from 'emailjs-com'; // Import the mocked module
 import React from 'react'; // Import React for forwardRef
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { addConsultationRequest } from '../api/consultationService.js'; // Import the mocked function
@@ -73,7 +73,7 @@ vi.mock('./MultiSelectDropdown.jsx', () => ({
 }));
 
 // Mock emailjs
-vi.mock('emailjs-com', () => ({
+vi.mock('@emailjs/browser', () => ({
   default: {
     send: vi.fn().mockResolvedValue({ status: 200, text: 'OK' }),
   },
@@ -299,11 +299,9 @@ describe('NewForm Component - Next Step Functionality', () => {
     const submitButton = screen.getByRole('button', { name: /Submit/i });
     fireEvent.click(submitButton);
 
-    // Check for the specific error message from handleSubmit
-    // This assertion will fail if submitMessage is not rendered when formStep is not 3.
-    // This correctly indicates an issue if the error message isn't user-visible.
+    // Check for the specific error message from validateStep2 (via stepError)
     await waitFor(() => {
-      expect(screen.getByText('Please fill in all required fields: Name, Email, Location, Stage, and at least one Topic.')).toBeInTheDocument();
+      expect(screen.getByText('Please select at least one topic of interest')).toBeInTheDocument();
     });
 
     // Ensure still on step 2

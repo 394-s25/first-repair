@@ -1,9 +1,9 @@
+import emailjs from '@emailjs/browser';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Snackbar from '@mui/material/Snackbar';
 import Typography from '@mui/material/Typography';
-import emailjs from 'emailjs-com';
 import { useRef, useState } from 'react';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { addConsultationRequest } from '../api/consultationService.js';
@@ -86,6 +86,21 @@ const Form = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setSubmitMessage(''); // Clear previous submission messages
+    setStepError(''); // Clear previous step errors
+
+    // Validate step 1 fields first
+    if (!validateStep1()) {
+      setFormStep(1); // Go back to step 1 to show errors
+      // validateStep1 already sets the stepError
+      return;
+    }
+
+    // Validate step 2 fields (we are on step 2 when submitting)
+    if (!validateStep2()) {
+      // validateStep2 already sets the stepError
+      return;
+    }
 
     if (!recaptchaToken) {
       setAlertMessage('Please complete the CAPTCHA before submitting.');
@@ -93,18 +108,8 @@ const Form = () => {
       return;
     }
 
-    if (!formData.name || !formData.email || !formData.stage || formData.topics.length === 0 || !formData.location) {
-      setSubmitMessage('Please fill in all required fields: Name, Email, Location, Stage, and at least one Topic.');
-      return;
-    }
-
-    if (formData.stage === 'Other' && !formData.otherStageDetail.trim()) {
-      setSubmitMessage('Please elaborate on the stage of your reparations initiative.');
-      return;
-    }
-
     setIsSubmitting(true);
-    setSubmitMessage('');
+    // setSubmitMessage(''); // Already cleared at the beginning
 
     try {
       const result = await addConsultationRequest(formData);

@@ -1,5 +1,5 @@
 // /src/api/consultationService.js
-import { addDoc, collection, doc, getDocs, orderBy, query, serverTimestamp, updateDoc, where } from "firebase/firestore";
+import { addDoc, collection, doc, getDocs, orderBy, query, serverTimestamp, updateDoc, where, writeBatch } from "firebase/firestore"; // Added writeBatch
 import { db } from '../firebase/firebase_ini';
 
 export const addConsultationRequest = async (requestData) => {
@@ -78,5 +78,30 @@ export const getAllConsultationRequests = async () => {
   } catch (e) {
     console.error("Error fetching all consultation requests: ", e);
     return { success: false, error: e, data: [] };
+  }
+};
+
+export const deleteAllConsultationRequests = async () => {
+  try {
+    const requestsCollectionRef = collection(db, "consultationRequests");
+    const q = query(requestsCollectionRef);
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      console.log("No requests to delete.");
+      return { success: true, message: "No requests found to delete." };
+    }
+
+    const batch = writeBatch(db);
+    querySnapshot.forEach((docSnapshot) => {
+      batch.delete(doc(db, "consultationRequests", docSnapshot.id));
+    });
+
+    await batch.commit();
+    console.log("All consultation requests deleted successfully.");
+    return { success: true };
+  } catch (e) {
+    console.error("Error deleting all consultation requests: ", e);
+    return { success: false, error: e };
   }
 };

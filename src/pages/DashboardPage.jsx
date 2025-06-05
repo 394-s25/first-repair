@@ -1,6 +1,7 @@
 // File: src/pages/DashboardPage.jsx
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever'; // Added
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
@@ -9,6 +10,11 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 import Collapse from '@mui/material/Collapse';
+import Dialog from '@mui/material/Dialog'; // Added
+import DialogActions from '@mui/material/DialogActions'; // Added
+import DialogContent from '@mui/material/DialogContent'; // Added
+import DialogContentText from '@mui/material/DialogContentText'; // Added
+import DialogTitle from '@mui/material/DialogTitle'; // Added
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
 import List from '@mui/material/List';
@@ -16,12 +22,13 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import Paper from '@mui/material/Paper';
+import TextField from '@mui/material/TextField'; // Added
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import { differenceInBusinessDays } from 'date-fns';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAllConsultationRequests, updateConsultationRequestStatus } from '../api/consultationService';
+import { deleteAllConsultationRequests, getAllConsultationRequests, updateConsultationRequestStatus } from '../api/consultationService'; // Added deleteAllConsultationRequests
 import { exportToSpreadsheet } from '../api/spreadsheetService';
 import { useAuth } from '../contexts/AuthContext';
 import { getRegionByState, MIDWEST_STATES, NORTHEAST_STATES, SOUTH_STATES, WEST_STATES } from '../utils/regionMapping';
@@ -52,8 +59,11 @@ const DashboardPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isExporting, setIsExporting] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true); // State for sidebar visibility
-  const [latestRequestData, setLatestRequestData] = useState(null); // State for the latest request
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [latestRequestData, setLatestRequestData] = useState(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [isTestMode, setIsTestMode] = useState(false); // Added test mode - set to false for production
   const { logout } = useAuth();
   const navigate = useNavigate();
   const [openRegions, setOpenRegions] = useState({});
@@ -181,6 +191,51 @@ const DashboardPage = () => {
       alert('An error occurred while exporting the data.');
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const handleOpenDeleteDialog = () => {
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleCloseDeleteDialog = () => {
+    setIsDeleteDialogOpen(false);
+    setDeleteConfirmText('');
+  };
+
+  const handleConfirmDeleteAll = async () => {
+    if (deleteConfirmText === "Delete All") {
+      setIsLoading(true);
+      
+      if (isTestMode) {
+        // Test mode: simulate deletion without actually calling the backend
+        console.log('TEST MODE: Simulating deletion of all requests');
+        console.log('Requests that would be deleted:', allRequests);
+        
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Simulate successful deletion
+        setAllRequests([]); 
+        setLatestRequestData(null);
+        alert('TEST MODE: All requests deleted successfully (simulated).');
+      } else {
+        // Production mode: actually delete the data
+        const result = await deleteAllConsultationRequests();
+        if (result.success) {
+          setAllRequests([]); 
+          setLatestRequestData(null);
+          await fetchRequests(); // Refetch to confirm empty state
+          alert('All requests deleted successfully.');
+        } else {
+          alert(`Failed to delete all requests: ${result.error?.message || 'Unknown error'}`);
+        }
+      }
+      
+      setIsLoading(false);
+      handleCloseDeleteDialog();
+    } else {
+      alert("Confirmation text does not match. Deletion cancelled.");
     }
   };
 
@@ -421,10 +476,26 @@ const DashboardPage = () => {
               <MenuIcon />
             </IconButton>
             <Typography variant="h4" component="h1" noWrap>Admin Dashboard</Typography>
+            {/* Test mode indicator */}
+            {isTestMode && (
+              <Box sx={{ ml: 2, px: 1, py: 0.5, bgcolor: 'warning.light', color: 'warning.contrastText', borderRadius: 1 }}>
+                <Typography variant="caption" fontWeight="bold">TEST MODE</Typography>
+              </Box>
+            )}
           </Box>
           <Box>
             <Button variant="contained" color="primary" startIcon={<FileDownloadIcon />} onClick={handleExport} disabled={isExporting} sx={{ mr: 1 }}>
               {isExporting ? 'Exporting...' : 'Export to CSV'}
+            </Button>
+            <Button 
+              variant="contained" 
+              color="error" 
+              startIcon={<DeleteForeverIcon />} 
+              onClick={handleOpenDeleteDialog} 
+              sx={{ mr: 1 }} 
+              disabled={isLoading || allRequests.length === 0}
+            >
+              {isTestMode ? 'Test Delete All' : 'Delete All Requests'}
             </Button>
             <Button variant="outlined" color="secondary" onClick={handleLogout}>Logout</Button>
           </Box>
@@ -617,6 +688,49 @@ const DashboardPage = () => {
           );
         })}
       </Box>
+      
+      {/* Delete All Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onClose={handleCloseDeleteDialog}>
+        <DialogTitle>
+          {isTestMode ? 'Test Delete All Requests' : 'Confirm Delete All Requests'}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {isTestMode ? (
+              <>
+                <strong>TEST MODE:</strong> This will simulate deleting all consultation requests without actually removing them from the database.
+                To confirm the test, please type "Delete All" in the box below.
+              </>
+            ) : (
+              <>
+                This action will permanently delete all consultation requests. This cannot be undone.
+                To confirm, please type "Delete All" in the box below.
+              </>
+            )}
+          </DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="delete-confirm-text"
+            label="Type 'Delete All'"
+            type="text"
+            fullWidth
+            variant="standard"
+            value={deleteConfirmText}
+            onChange={(e) => setDeleteConfirmText(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDeleteDialog}>Cancel</Button>
+          <Button 
+            onClick={handleConfirmDeleteAll} 
+            color="error"
+            disabled={deleteConfirmText !== "Delete All"}
+          >
+            {isTestMode ? 'Test Delete All' : 'Delete All'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

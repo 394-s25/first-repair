@@ -59,10 +59,11 @@ const DashboardPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isExporting, setIsExporting] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true); // State for sidebar visibility
-  const [latestRequestData, setLatestRequestData] = useState(null); // State for the latest request
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false); // Added
-  const [deleteConfirmText, setDeleteConfirmText] = useState(''); // Added
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [latestRequestData, setLatestRequestData] = useState(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [isTestMode, setIsTestMode] = useState(false); // Added test mode - set to false for production
   const { logout } = useAuth();
   const navigate = useNavigate();
   const [openRegions, setOpenRegions] = useState({});
@@ -205,15 +206,32 @@ const DashboardPage = () => {
   const handleConfirmDeleteAll = async () => {
     if (deleteConfirmText === "Delete All") {
       setIsLoading(true);
-      const result = await deleteAllConsultationRequests();
-      if (result.success) {
+      
+      if (isTestMode) {
+        // Test mode: simulate deletion without actually calling the backend
+        console.log('TEST MODE: Simulating deletion of all requests');
+        console.log('Requests that would be deleted:', allRequests);
+        
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Simulate successful deletion
         setAllRequests([]); 
         setLatestRequestData(null);
-        await fetchRequests(); // Refetch to confirm empty state
-        alert('All requests deleted successfully.');
+        alert('TEST MODE: All requests deleted successfully (simulated).');
       } else {
-        alert(`Failed to delete all requests: ${result.error?.message || 'Unknown error'}`);
+        // Production mode: actually delete the data
+        const result = await deleteAllConsultationRequests();
+        if (result.success) {
+          setAllRequests([]); 
+          setLatestRequestData(null);
+          await fetchRequests(); // Refetch to confirm empty state
+          alert('All requests deleted successfully.');
+        } else {
+          alert(`Failed to delete all requests: ${result.error?.message || 'Unknown error'}`);
+        }
       }
+      
       setIsLoading(false);
       handleCloseDeleteDialog();
     } else {
@@ -458,13 +476,26 @@ const DashboardPage = () => {
               <MenuIcon />
             </IconButton>
             <Typography variant="h4" component="h1" noWrap>Admin Dashboard</Typography>
+            {/* Test mode indicator */}
+            {isTestMode && (
+              <Box sx={{ ml: 2, px: 1, py: 0.5, bgcolor: 'warning.light', color: 'warning.contrastText', borderRadius: 1 }}>
+                <Typography variant="caption" fontWeight="bold">TEST MODE</Typography>
+              </Box>
+            )}
           </Box>
           <Box>
             <Button variant="contained" color="primary" startIcon={<FileDownloadIcon />} onClick={handleExport} disabled={isExporting} sx={{ mr: 1 }}>
               {isExporting ? 'Exporting...' : 'Export to CSV'}
             </Button>
-            <Button variant="contained" color="error" startIcon={<DeleteForeverIcon />} onClick={handleOpenDeleteDialog} sx={{ mr: 1 }} disabled={isLoading || allRequests.length === 0}>
-              Delete All Requests
+            <Button 
+              variant="contained" 
+              color="error" 
+              startIcon={<DeleteForeverIcon />} 
+              onClick={handleOpenDeleteDialog} 
+              sx={{ mr: 1 }} 
+              disabled={isLoading || allRequests.length === 0}
+            >
+              {isTestMode ? 'Test Delete All' : 'Delete All Requests'}
             </Button>
             <Button variant="outlined" color="secondary" onClick={handleLogout}>Logout</Button>
           </Box>
@@ -660,11 +691,22 @@ const DashboardPage = () => {
       
       {/* Delete All Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onClose={handleCloseDeleteDialog}>
-        <DialogTitle>Confirm Delete All Requests</DialogTitle>
+        <DialogTitle>
+          {isTestMode ? 'Test Delete All Requests' : 'Confirm Delete All Requests'}
+        </DialogTitle>
         <DialogContent>
           <DialogContentText>
-            This action will permanently delete all consultation requests. This cannot be undone.
-            To confirm, please type "Delete All" in the box below.
+            {isTestMode ? (
+              <>
+                <strong>TEST MODE:</strong> This will simulate deleting all consultation requests without actually removing them from the database.
+                To confirm the test, please type "Delete All" in the box below.
+              </>
+            ) : (
+              <>
+                This action will permanently delete all consultation requests. This cannot be undone.
+                To confirm, please type "Delete All" in the box below.
+              </>
+            )}
           </DialogContentText>
           <TextField
             autoFocus
@@ -685,7 +727,7 @@ const DashboardPage = () => {
             color="error"
             disabled={deleteConfirmText !== "Delete All"}
           >
-            Delete All
+            {isTestMode ? 'Test Delete All' : 'Delete All'}
           </Button>
         </DialogActions>
       </Dialog>

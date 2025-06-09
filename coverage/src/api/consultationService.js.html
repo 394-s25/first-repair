@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">18.36% </span>
+                <span class="strong">40.81% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>18/98</span>
+                <span class='fraction'>40/98</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">50% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>1/2</span>
+                <span class='fraction'>3/6</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">20% </span>
+                <span class="strong">40% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/5</span>
+                <span class='fraction'>2/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">18.36% </span>
+                <span class="strong">40.81% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>18/98</span>
+                <span class='fraction'>40/98</span>
             </div>
         
             
@@ -226,32 +226,32 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">36x</span>
+<span class="cline-any cline-yes">36x</span>
+<span class="cline-any cline-yes">36x</span>
+<span class="cline-any cline-yes">36x</span>
+<span class="cline-any cline-yes">36x</span>
+<span class="cline-any cline-yes">36x</span>
+<span class="cline-any cline-yes">36x</span>
+<span class="cline-any cline-yes">36x</span>
+<span class="cline-any cline-yes">36x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -332,33 +332,33 @@ export const updateConsultationRequestStatus = <span class="fstat-no" title="fun
 <span class="cstat-no" title="statement not covered" >    }</span>
 <span class="cstat-no" title="statement not covered" >};</span>
 &nbsp;
-export const getAllConsultationRequests = <span class="fstat-no" title="function not covered" >async () =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >  try {</span>
-<span class="cstat-no" title="statement not covered" >    const requestsCollection = collection(db, "consultationRequests");</span>
-<span class="cstat-no" title="statement not covered" >    const q = query(</span>
-<span class="cstat-no" title="statement not covered" >      requestsCollection,</span>
-<span class="cstat-no" title="statement not covered" >      orderBy("createdAt", "desc")</span>
-<span class="cstat-no" title="statement not covered" >    );</span>
+export const getAllConsultationRequests = async () =&gt; {
+  try {
+    const requestsCollection = collection(db, "consultationRequests");
+    const q = query(
+      requestsCollection,
+      orderBy("createdAt", "desc")
+    );
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    const querySnapshot = await getDocs(q);</span>
-<span class="cstat-no" title="statement not covered" >    const allRequests = [];</span>
-<span class="cstat-no" title="statement not covered" >    querySnapshot.forEach((doc) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >      const data = doc.data(); // Get the document data</span>
-<span class="cstat-no" title="statement not covered" >      allRequests.push({ </span>
-<span class="cstat-no" title="statement not covered" >        id: doc.id, </span>
-<span class="cstat-no" title="statement not covered" >        ...data, // Spread the original data</span>
-<span class="cstat-no" title="statement not covered" >        // Convert createdAt to a JavaScript Date object if it exists and has toDate</span>
-<span class="cstat-no" title="statement not covered" >        createdAt: data.createdAt &amp;&amp; typeof data.createdAt.toDate === 'function' </span>
-<span class="cstat-no" title="statement not covered" >                   ? data.createdAt.toDate() </span>
-<span class="cstat-no" title="statement not covered" >                   : null </span>
-<span class="cstat-no" title="statement not covered" >      });</span>
-<span class="cstat-no" title="statement not covered" >    });</span>
-<span class="cstat-no" title="statement not covered" >    return { success: true, data: allRequests };</span>
-<span class="cstat-no" title="statement not covered" >  } catch (e) {</span>
+    const querySnapshot = await getDocs(q);
+    const allRequests = [];
+    querySnapshot.forEach((doc) =&gt; {
+      const data = doc.data(); // Get the document data
+      allRequests.push({ 
+        id: doc.id, 
+        ...data, // Spread the original data
+        // Convert createdAt to a JavaScript Date object if it exists and has toDate
+        createdAt: data.createdAt &amp;&amp; typeof data.createdAt.toDate === 'function' 
+                   ? data.createdAt.toDate() 
+<span class="branch-0 cbranch-no" title="branch not covered" >                   : null </span>
+      });
+    });
+    return { success: true, data: allRequests };
+  } <span class="branch-0 cbranch-no" title="branch not covered" >catch (e) {</span>
 <span class="cstat-no" title="statement not covered" >    console.error("Error fetching all consultation requests: ", e);</span>
 <span class="cstat-no" title="statement not covered" >    return { success: false, error: e, data: [] };</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
-<span class="cstat-no" title="statement not covered" >};</span>
+};
 &nbsp;
 export const deleteAllConsultationRequests = <span class="fstat-no" title="function not covered" >async () =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >  try {</span>
@@ -391,7 +391,7 @@ export const deleteAllConsultationRequests = <span class="fstat-no" title="funct
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-06-09T22:08:25.377Z
+                at 2025-06-09T22:39:51.951Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

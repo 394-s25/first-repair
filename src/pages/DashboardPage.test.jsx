@@ -28,12 +28,13 @@ const renderWithRouter = (component) => {
   );
 }
 it('calls export service on clicking the "Export to CSV" button on the dashboard', async () => {
+    // From existing test file
     useAuth.mockReturnValue({
         logout: vi.fn()
     });
-
     renderWithRouter(<DashboardPage />);
 
+    // Waits for button to render
     await waitFor(() => {
         expect(screen.getByText('Export to CSV')).toBeInTheDocument();
     });
@@ -41,6 +42,7 @@ it('calls export service on clicking the "Export to CSV" button on the dashboard
     const exportButton = screen.getByText(/Export to CSV/i );
     fireEvent.click(exportButton);
 
+    // Ensures export api was called
     await waitFor(() => {
       expect(exportToSpreadsheet).toHaveBeenCalled();
     });

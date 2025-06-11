@@ -3,7 +3,7 @@
 
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import React from 'react'; // Import React for forwardRef
+import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import Form from './NewForm.jsx';
 
@@ -23,7 +23,7 @@ vi.mock('./LocationAutocomplete.jsx', () => ({
 vi.mock('./SingleSelectDrowdown', () => ({ }))
 vi.mock('./MultiSelectDropdown', () => ({ }))
 
-describe('NewForm — Location Requirement', () => {
+describe.only('NewForm — Location Requirement', () => {
     it('should not go to step 3 if no location is selected', async ()=> {
         render(<Form />);
 
@@ -41,7 +41,7 @@ describe('NewForm — Location Requirement', () => {
         // location is required error
         await waitFor(() => 
             expect(screen.getByText('Location is required')).toBeInTheDocument());
-        // still on step 2
+        // still on step 2 check
         expect(screen.getByText(/About You/i)).toBeInTheDocument();
     });
 });

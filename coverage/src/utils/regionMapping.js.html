@@ -3,15 +3,15 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for src/index.jsx</title>
+    <title>Code coverage report for src/utils/regionMapping.js</title>
     <meta charset="utf-8" />
-    <link rel="stylesheet" href="../prettify.css" />
-    <link rel="stylesheet" href="../base.css" />
-    <link rel="shortcut icon" type="image/x-icon" href="../favicon.png" />
+    <link rel="stylesheet" href="../../prettify.css" />
+    <link rel="stylesheet" href="../../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style type='text/css'>
         .coverage-summary .sorter {
-            background-image: url(../sort-arrow-sprite.png);
+            background-image: url(../../sort-arrow-sprite.png);
         }
     </style>
 </head>
@@ -19,13 +19,13 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../index.html">All files</a> / <a href="index.html">src</a> index.jsx</h1>
+        <h1><a href="../../index.html">All files</a> / <a href="index.html">src/utils</a> regionMapping.js</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/10</span>
+                <span class='fraction'>0/14</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/10</span>
+                <span class='fraction'>0/14</span>
             </div>
         
             
@@ -75,31 +75,37 @@
 <a name='L10'></a><a href='#L10'>10</a>
 <a name='L11'></a><a href='#L11'>11</a>
 <a name='L12'></a><a href='#L12'>12</a>
-<a name='L13'></a><a href='#L13'>13</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >import React from 'react';<span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" ></span></span></span>
-<span class="cstat-no" title="statement not covered" >import ReactDOM from 'react-dom/client';</span>
-<span class="cstat-no" title="statement not covered" >import './index.css';</span>
-<span class="cstat-no" title="statement not covered" >import App from './App';</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >// filepath: /Users/RayChen/Desktop/CS394/first-repair/src/utils/regionMapping.js<span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" ></span></span></span>
+<span class="cstat-no" title="statement not covered" >export const NORTHEAST_STATES = ["ME", "NH", "VT", "MA", "RI", "CT", "NY", "NJ", "PA"];</span>
+<span class="cstat-no" title="statement not covered" >export const MIDWEST_STATES = ["OH", "IN", "IL", "MI", "WI", "MN", "IA", "MO", "ND", "SD", "NE", "KS"];</span>
+<span class="cstat-no" title="statement not covered" >export const SOUTH_STATES = ["DE", "MD", "DC", "VA", "WV", "KY", "NC", "SC", "GA", "FL", "AL", "MS", "TN", "AR", "LA", "OK", "TX"];</span>
+<span class="cstat-no" title="statement not covered" >export const WEST_STATES = ["MT", "WY", "CO", "NM", "ID", "UT", "AZ", "NV", "WA", "OR", "CA", "AK", "HI"];</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >const root = ReactDOM.createRoot(document.getElementById('root'));</span>
-&nbsp;
-<span class="cstat-no" title="statement not covered" >root.render(</span>
-<span class="cstat-no" title="statement not covered" >  &lt;React.StrictMode&gt;</span>
-<span class="cstat-no" title="statement not covered" >    &lt;App /&gt;</span>
-<span class="cstat-no" title="statement not covered" >  &lt;/React.StrictMode&gt;</span>
-<span class="cstat-no" title="statement not covered" >);</span>
-&nbsp;</pre></td></tr></table></pre>
+<span class="cstat-no" title="statement not covered" >export const getRegionByState = (stateCode) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >  if (!stateCode) return 'Unknown';</span>
+<span class="cstat-no" title="statement not covered" >  const upperCaseStateCode = stateCode.toUpperCase();</span>
+<span class="cstat-no" title="statement not covered" >  if (NORTHEAST_STATES.includes(upperCaseStateCode)) return 'Northeast';</span>
+<span class="cstat-no" title="statement not covered" >  if (MIDWEST_STATES.includes(upperCaseStateCode)) return 'Midwest';</span>
+<span class="cstat-no" title="statement not covered" >  if (SOUTH_STATES.includes(upperCaseStateCode)) return 'South';</span>
+<span class="cstat-no" title="statement not covered" >  if (WEST_STATES.includes(upperCaseStateCode)) return 'West';</span>
+<span class="cstat-no" title="statement not covered" >  return 'Unknown'; // Or handle as per your needs for international/unmatched</span>
+<span class="cstat-no" title="statement not covered" >};</span></pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
@@ -108,14 +114,14 @@
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
                 at 2025-06-11T17:04:14.891Z
             </div>
-        <script src="../prettify.js"></script>
+        <script src="../../prettify.js"></script>
         <script>
             window.onload = function () {
                 prettyPrint();
             };
         </script>
-        <script src="../sorter.js"></script>
-        <script src="../block-navigation.js"></script>
+        <script src="../../sorter.js"></script>
+        <script src="../../block-navigation.js"></script>
     </body>
 </html>
     

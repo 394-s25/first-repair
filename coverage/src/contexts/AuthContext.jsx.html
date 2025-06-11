@@ -3,15 +3,15 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for src/App.jsx</title>
+    <title>Code coverage report for src/contexts/AuthContext.jsx</title>
     <meta charset="utf-8" />
-    <link rel="stylesheet" href="../prettify.css" />
-    <link rel="stylesheet" href="../base.css" />
-    <link rel="shortcut icon" type="image/x-icon" href="../favicon.png" />
+    <link rel="stylesheet" href="../../prettify.css" />
+    <link rel="stylesheet" href="../../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style type='text/css'>
         .coverage-summary .sorter {
-            background-image: url(../sort-arrow-sprite.png);
+            background-image: url(../../sort-arrow-sprite.png);
         }
     </style>
 </head>
@@ -19,13 +19,13 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../index.html">All files</a> / <a href="index.html">src</a> App.jsx</h1>
+        <h1><a href="../../index.html">All files</a> / <a href="index.html">src/contexts</a> AuthContext.jsx</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/23</span>
+                <span class='fraction'>0/22</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/23</span>
+                <span class='fraction'>0/22</span>
             </div>
         
             
@@ -95,6 +95,10 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -106,9 +110,7 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -117,37 +119,35 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// filepath: src/App.jsx
-<span class="cstat-no" title="statement not covered" >import { BrowserRouter, Route, Routes } from 'react-router-dom';</span>
-<span class="cstat-no" title="statement not covered" >import NewForm from './components/NewForm.jsx';</span>
-<span class="cstat-no" title="statement not covered" >import PrivateRoute from './components/PrivateRoute.jsx'; // ← new</span>
-<span class="cstat-no" title="statement not covered" >import { AuthProvider } from './contexts/AuthContext.jsx'; // ← new</span>
-<span class="cstat-no" title="statement not covered" >import DashboardPage from './pages/DashboardPage.jsx';</span>
-<span class="cstat-no" title="statement not covered" >import LoginPage from './pages/LoginPage.jsx'; // ← new</span>
+<span class="cline-any cline-no">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// filepath: src/contexts/AuthContext.jsx
+<span class="cstat-no" title="statement not covered" >import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';</span>
+<span class="cstat-no" title="statement not covered" >import { createContext, useContext, useEffect, useState } from 'react';</span>
+<span class="cstat-no" title="statement not covered" >import { auth } from '../firebase/firebase_ini';</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >const App = () =&gt; (</span>
-<span class="cstat-no" title="statement not covered" >  &lt;AuthProvider&gt;</span>
-<span class="cstat-no" title="statement not covered" >    &lt;BrowserRouter&gt;</span>
-<span class="cstat-no" title="statement not covered" >      &lt;Routes&gt;</span>
-<span class="cstat-no" title="statement not covered" >        &lt;Route path="/" element={&lt;NewForm /&gt;} /&gt;</span>
-<span class="cstat-no" title="statement not covered" >        &lt;Route path="/login" element={&lt;LoginPage /&gt;} /&gt;           // public login</span>
-<span class="cstat-no" title="statement not covered" >        &lt;Route</span>
-<span class="cstat-no" title="statement not covered" >          path="/admin/dashboard"</span>
-<span class="cstat-no" title="statement not covered" >          element={</span>
-<span class="cstat-no" title="statement not covered" >            &lt;PrivateRoute&gt;</span>
-<span class="cstat-no" title="statement not covered" >              &lt;DashboardPage /&gt;</span>
-<span class="cstat-no" title="statement not covered" >            &lt;/PrivateRoute&gt;</span>
-          }
-<span class="cstat-no" title="statement not covered" >        /&gt;</span>
-<span class="cstat-no" title="statement not covered" >      &lt;/Routes&gt;</span>
-<span class="cstat-no" title="statement not covered" >    &lt;/BrowserRouter&gt;</span>
-<span class="cstat-no" title="statement not covered" >  &lt;/AuthProvider&gt;</span>
-);
+<span class="cstat-no" title="statement not covered" >const AuthContext = createContext();</span>
+<span class="cstat-no" title="statement not covered" >export const useAuth = () =&gt; useContext(AuthContext);</span>
 &nbsp;
+<span class="cstat-no" title="statement not covered" >export function AuthProvider({ children }) {</span>
+<span class="cstat-no" title="statement not covered" >  const [currentUser, setCurrentUser] = useState(null);</span>
+<span class="cstat-no" title="statement not covered" >  const [loading, setLoading] = useState(true);</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >export default App;</span></pre></td></tr></table></pre>
+<span class="cstat-no" title="statement not covered" >  useEffect(() =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >    const unsubscribe = onAuthStateChanged(auth, user =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >      setCurrentUser(user);</span>
+<span class="cstat-no" title="statement not covered" >      setLoading(false);</span>
+<span class="cstat-no" title="statement not covered" >    });</span>
+<span class="cstat-no" title="statement not covered" >    return unsubscribe;</span>
+<span class="cstat-no" title="statement not covered" >  }, []);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >  const login = (email, password) =&gt; signInWithEmailAndPassword(auth, email, password);</span>
+<span class="cstat-no" title="statement not covered" >  const logout = () =&gt; signOut(auth);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >  return (</span>
+<span class="cstat-no" title="statement not covered" >    &lt;AuthContext.Provider value={{ currentUser, login, logout }}&gt;</span>
+<span class="cstat-no" title="statement not covered" >      {!loading &amp;&amp; children}</span>
+<span class="cstat-no" title="statement not covered" >    &lt;/AuthContext.Provider&gt;</span>
+  );
+<span class="cstat-no" title="statement not covered" >}</span></pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
@@ -156,14 +156,14 @@
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
                 at 2025-06-11T17:04:14.891Z
             </div>
-        <script src="../prettify.js"></script>
+        <script src="../../prettify.js"></script>
         <script>
             window.onload = function () {
                 prettyPrint();
             };
         </script>
-        <script src="../sorter.js"></script>
-        <script src="../block-navigation.js"></script>
+        <script src="../../sorter.js"></script>
+        <script src="../../block-navigation.js"></script>
     </body>
 </html>
     

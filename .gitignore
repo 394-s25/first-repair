@@ -109,5 +109,5 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
-
+coverage/*
 # End of https://www.toptal.com/developers/gitignore/api/react,firebase,visualstudiocode,macos,windows

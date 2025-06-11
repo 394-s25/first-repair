@@ -1,6 +1,6 @@
+import emailjs from '@emailjs/browser';
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import emailjs from 'emailjs-com'; // Import the mocked module
 import React from 'react'; // Import React for forwardRef
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { addConsultationRequest } from '../api/consultationService.js'; // Import the mocked function
@@ -72,8 +72,8 @@ vi.mock('./MultiSelectDropdown.jsx', () => ({
   }),
 }));
 
-// Mock emailjs
-vi.mock('emailjs-com', () => ({
+// Mock emailjs with proper structure
+vi.mock('@emailjs/browser', () => ({
   default: {
     send: vi.fn().mockResolvedValue({ status: 200, text: 'OK' }),
   },
@@ -87,7 +87,7 @@ vi.mock('../api/consultationService.js', () => ({
 describe('NewForm Component - Next Step Functionality', () => {
   beforeEach(() => {
     // Clear mocks that might have been called in previous tests if necessary
-    vi.mocked(emailjs.send).mockClear();
+    emailjs.send.mockClear();
     vi.mocked(addConsultationRequest).mockClear();
     recaptchaOnChangeCallback = null; // Reset ReCAPTCHA mock helper
     mockTopicsOnChange = null; // Reset MultiSelectDropdown mock helper
